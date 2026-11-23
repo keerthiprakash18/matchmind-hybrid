@@ -44,3 +44,12 @@ button:not(:disabled):active{transform:scale(.99)}
 @media(max-width:870px){.insight-panel{grid-template-columns:1fr;gap:16px}.distribution{max-width:520px}}
 @media(max-width:570px){.ops-panel,.insight-panel{padding:18px}.ops-heading{flex-wrap:wrap}.ops-heading strong{font-size:21px}.privacy-tag{font-size:9px}.ops-buttons{display:grid;grid-template-columns:1fr 1fr}.ops-buttons button{padding:10px 8px;font-size:10px}.team-name-input{text-align:center;font-size:11px;max-width:115px;padding:4px 2px}.distribution{gap:8px}.dist-item small{font-size:9px}.hero:after,.hero:before{display:none}.export-actions{display:grid;grid-template-columns:1fr 1fr}}
 @media(prefers-reduced-motion:reduce){*,*:before,*:after{scroll-behavior:auto!important;animation-duration:.01ms!important;transition-duration:.01ms!important}}
+
+
+/* Rich tactical report formatting. Text remains React-escaped; no HTML parser. */
+.formatted-report{white-space:normal;display:grid;gap:10px;margin-top:18px;line-height:1.7}
+.formatted-report h3{font-size:14px;line-height:1.4;margin:10px 0 0;color:#192b5c;letter-spacing:-.2px}
+.formatted-report p{border:0;margin:0;padding:0;font-size:12px;line-height:1.75;color:#253454}
+.formatted-report .report-bullet{padding-left:14px;text-indent:-14px}
+.formatted-report .report-numbered{padding-left:4px}
+.formatted-report strong{font-weight:800;color:#153a97}
