@@ -10,6 +10,7 @@ import { buildPrompt, EVENT_TYPES, sampleEvents, summarize } from './logic.mjs';
 import { SESSION_KEY, validateSession, exportEventsCsv, exportBrief, eventDistribution } from './session.mjs';
 import { friendlyInferenceError } from './errors.mjs';
 import { inferenceLabel } from './inferenceSource.mjs';
+import { parseReportBlocks } from './reportFormat.mjs';
 import './style.css';
 
 type Team = 'Us' | 'Opponent';
@@ -30,6 +31,13 @@ const statDisplay = [
   ['recoveries', 'Ball recoveries', RotateCcw],
   ['opponentThreats', 'Opponent threats', ArrowDownRight]
 ] as const;
+
+const renderEmphasis = (value: string) =>
+  value.split(/(\*\*[^*]+\*\*)/g).map((part, index) =>
+    part.startsWith('**') && part.endsWith('**')
+      ? <strong key={index}>{part.slice(2, -2)}</strong>
+      : <React.Fragment key={index}>{part}</React.Fragment>
+  );
 
 function App() {
   const [events, setEvents] = useState<GameEvent[]>(initialEvents.map(e => ({...e})));
@@ -199,7 +207,11 @@ function App() {
               <button className="button-main" onClick={analyze} disabled={state==='working'||!events.length}><Sparkles size={18}/>{state === 'working' ? 'Analyzing observations…' : 'Generate match intelligence'}<ArrowRight size={18}/></button>
               {progress !== null && state === 'working' && mode !== 'cloud' && <p className="download-progress">On-device model download: {progress}% (cloud may be used while downloading)</p>}
               {state === 'error' && <div className="error" role="alert">{error}</div>}
-              {state === 'done' && <div className="ai-result"><div className="result-heading"><strong><CheckCircle2 size={17}/> Analysis generated</strong><span className="source-pill">{inferenceLabel(source)}</span></div><div className="result-body">{output}</div><p>AI-generated guidance — verify with the full match context before acting.</p><div className="export-actions"><button onClick={downloadBrief}><Download size={15}/> Download briefing</button><button onClick={copyBrief}><Copy size={15}/> Copy briefing</button></div><span className="export-status" role="status">{exportStatus}</span></div>}
+              {state === 'done' && <div className="ai-result"><div className="result-heading"><strong><CheckCircle2 size={17}/> Analysis generated</strong><span className="source-pill">{inferenceLabel(source)}</span></div><div className="result-body formatted-report">{parseReportBlocks(output).map((block, index) =>
+                block.kind === 'heading'
+                  ? <h3 key={index}>{renderEmphasis(block.text)}</h3>
+                  : <p className={block.kind === 'bullet' ? 'report-bullet' : block.kind === 'numbered' ? 'report-numbered' : 'report-paragraph'} key={index}>{block.kind === 'bullet' ? '• ' : ''}{renderEmphasis(block.text)}</p>
+              )}</div><p>AI-generated guidance — verify with the full match context before acting.</p><div className="export-actions"><button onClick={downloadBrief}><Download size={15}/> Download briefing</button><button onClick={copyBrief}><Copy size={15}/> Copy briefing</button></div><span className="export-status" role="status">{exportStatus}</span></div>}
               {state === 'idle' && <div className="result-placeholder"><div className="orb"><Sparkles size={23}/></div><h3>Your next insight starts here.</h3><p>Choose a focus, then analyze real observations using Firebase AI Logic. No mock AI response is shown.</p></div>}
             </section>
           </div>
