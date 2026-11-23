@@ -148,8 +148,11 @@ function App() {
   };
   const clearSession = () => {
     if(!window.confirm('Clear match notes and the saved tab session? This cannot be undone.'))return;
-    sessionStorage.removeItem(SESSION_KEY);setEvents([]);setLastDeleted(null);setEditingId(null);setEditDraft(null);invalidateResult();
-    setSessionStatus('Notes and saved session cleared');
+    let storageCleared = true;
+    try { sessionStorage.removeItem(SESSION_KEY); }
+    catch { storageCleared = false; }
+    setEvents([]);setLastDeleted(null);setEditingId(null);setEditDraft(null);invalidateResult();
+    setSessionStatus(storageCleared ? 'Notes and saved session cleared' : 'Notes cleared from the screen, but saved browser storage could not be removed. Check browser settings.');
   };
   const downloadText = (filename:string,body:string,mime:string) => {
     const url=URL.createObjectURL(new Blob([body],{type:mime}));
@@ -413,6 +416,12 @@ function App() {
                 <button aria-pressed={mode==='cloud'} className={'mode '+(mode==='cloud'?'selected':'')} onClick={()=>{setMode('cloud');invalidateResult(false);}}><Cloud size={19}/><strong>Cloud</strong><small>Remote model only</small></button>
               </div>
               <div className="device-readiness" role="status" aria-live="polite"><Cpu size={15}/><span>{deviceStatus}. Browser support is advisory; verify the actual inference route below.</span></div>
+              <details className="device-guide">
+                <summary>Device setup & why the route can change</summary>
+                <p><strong>On-device:</strong> compatible Chrome desktop (139+) and an installed Gemini Nano model are required. The first request may download a model. The exact SDK route appears in the analysis receipt.</p>
+                <p><strong>Hybrid:</strong> prefers the device, and can send your notes to Firebase Gemini Cloud when local inference is unavailable. An internet-disconnected response is only possible when a supported on-device model is installed and the application can initialize it.</p>
+                <a href="https://firebase.google.com/docs/ai-logic/hybrid/web/get-started" target="_blank" rel="noopener noreferrer">Firebase official setup guide ↗</a>
+              </details>
               <div className="focus-box"><label htmlFor="goal">WHAT DO YOU NEED?</label><select id="goal" value={goal} onChange={(e)=>{setGoal(e.target.value as Goal);invalidateResult();}}><option>Halftime briefing</option><option>Tactical adjustments</option><option>Training priorities</option></select><p>AI suggestions use only logged observations. The model may still be wrong; the coach makes the final decision.</p></div>
               <div className="cloud-privacy" role="note">
                 <LockKeyhole size={17} aria-hidden="true"/>
