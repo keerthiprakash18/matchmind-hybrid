@@ -89,3 +89,11 @@ jobs:
         run: npx playwright test tests/e2e.spec.mjs tests/accessibility.spec.mjs --reporter=line
         env:
           BASE_URL: http://127.0.0.1:4173
+      - name: Store synthetic-only UI screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: matchmind-visual-qa
+          path: artifacts/matchmind-*.png
+          if-no-files-found: ignore
+          retention-days: 7
