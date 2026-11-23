@@ -108,3 +108,7 @@ button:not(:disabled):active{transform:scale(.99)}
 .signal-empty{padding:20px;border:1px dashed #d2dded;border-radius:12px;color:#6b7a90;font-size:12px;background:#fff}
 @media(max-width:930px){.signal-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:600px){.signal-section-head{align-items:flex-start;flex-direction:column}.signal-section-head h2{font-size:21px}.signal-grid{grid-template-columns:1fr}.signal-card{min-height:0}}
+
+/* WCAG 2.1 AA correction: new tactical cards need readable small text. */
+.signal-card-top span{color:#52627b}
+.signal-card p{color:#58677e}
