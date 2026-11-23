@@ -343,7 +343,65 @@ function App() {
 
           <div className="two-col">
             <section className="panel" id="notebook"><div className="panel-title"><div><span className="overline">THE INPUT</span><h2>Touchline notebook</h2><p>A simple record of what actually happened.</p></div><span className="counter">{events.length}/50</span></div>
-              <div className="timeline">{events.length === 0 && <p className="empty">No events yet. Log your first observation below.</p>}{events.map((event) => <div className="event" key={event.id}><div className="minute">{event.minute}'</div><span className={'event-marker ' + (event.team === 'Us' ? 'ours' : 'theirs')}/><div className="event-body"><div className="event-top"><strong>{event.type}</strong><span className={event.team === 'Us' ? 'team-pill ours-pill' : 'team-pill'}>{event.team === 'Us' ? 'OUR TEAM' : 'OPPONENT'}</span></div><p>{event.note}</p></div><button className="icon-button" title="Delete this observation" aria-label={'Delete event at minute ' + event.minute} onClick={() => {setEvents(prev => prev.filter(e => e.id !== event.id));invalidateResult();}}><Trash2 size={15}/></button></div>)}</div>
+              <div className="notebook-tools" aria-label="Find observations">
+                <label htmlFor="observation-search"><Search size={14}/> Search notes
+                  <input id="observation-search" type="search" value={searchQuery} onChange={e=>setSearchQuery(e.target.value)}
+                    placeholder="Minute, event or keyword" maxLength={100}/>
+                </label>
+                <label htmlFor="observation-team">Filter by team
+                  <select id="observation-team" value={teamFilter} onChange={e=>setTeamFilter(e.target.value as 'All' | Team)}>
+                    <option value="All">Both teams</option><option value="Us">Our team</option><option value="Opponent">Opponent</option>
+                  </select>
+                </label>
+                <label htmlFor="observation-type">Filter by event
+                  <select id="observation-type" value={typeFilter} onChange={e=>setTypeFilter(e.target.value)}>
+                    <option value="All">All types</option>{EVENT_TYPES.map((type:string)=><option key={type} value={type}>{type}</option>)}
+                  </select>
+                </label>
+              </div>
+              <p className="filtered-count" role="status">Showing {visibleEvents.length} of {events.length} logged observations. Summary and AI use all events.</p>
+              {lastDeleted && <div className="undo-banner" role="status"><span>Observation at {lastDeleted.minute}′ removed.</span>
+                <button type="button" onClick={undoDelete}><Undo2 size={14}/> Undo deletion</button></div>}
+              <div className="timeline">
+                {events.length === 0 && <p className="empty">No events yet. Log your first observation below.</p>}
+                {events.length > 0 && visibleEvents.length === 0 && <p className="empty">No observations match these filters. Your original notes have not changed.</p>}
+                {visibleEvents.map((event) => <div className="event" key={event.id}>
+                  <div className="minute">{event.minute}'</div>
+                  <span className={'event-marker ' + (event.team === 'Us' ? 'ours' : 'theirs')}/>
+                  <div className="event-body">
+                    <div className="event-top"><strong>{event.type}</strong>
+                      <span className={event.team === 'Us' ? 'team-pill ours-pill' : 'team-pill'}>{event.team === 'Us' ? 'OUR TEAM' : 'OPPONENT'}</span>
+                    </div>
+                    {editingId === event.id && editDraft ? <div className="edit-form" role="group" aria-label={'Edit observation at minute ' + event.minute}>
+                      <div className="edit-row">
+                        <label>MIN<input aria-label={'Edit minute at ' + event.minute} type="number" min="0" max="120" step="1"
+                          value={editDraft.minute} onChange={e=>setEditDraft(p=>p?{...p,minute:Number(e.target.value)}:null)}/></label>
+                        <label>TEAM<select aria-label={'Edit team at ' + event.minute} value={editDraft.team}
+                          onChange={e=>setEditDraft(p=>p?{...p,team:e.target.value as Team}:null)}>
+                          <option value="Us">Us</option><option value="Opponent">Opponent</option>
+                        </select></label>
+                        <label>EVENT<select aria-label={'Edit event type at ' + event.minute} value={editDraft.type}
+                          onChange={e=>setEditDraft(p=>p?{...p,type:e.target.value}:null)}>
+                          {EVENT_TYPES.map((type:string)=><option key={type}>{type}</option>)}
+                        </select></label>
+                      </div>
+                      <label>OBSERVATION<textarea aria-label={'Edit observation text at ' + event.minute}
+                        rows={2} maxLength={240} value={editDraft.note}
+                        onChange={e=>setEditDraft(p=>p?{...p,note:e.target.value}:null)}/></label>
+                      <div className="edit-actions">
+                        <button type="button" className="button-secondary" onClick={saveObservationEdit}>Save changes</button>
+                        <button type="button" className="button-secondary" onClick={()=>{setEditingId(null);setEditDraft(null);}}><X size={14}/> Cancel</button>
+                      </div>
+                    </div> : <p>{event.note}</p>}
+                  </div>
+                  <div className="event-actions">
+                    <button type="button" className="icon-button" title="Edit observation"
+                      aria-label={'Edit event at minute ' + event.minute} onClick={()=>editObservation(event)}><Pencil size={15}/></button>
+                    <button type="button" className="icon-button" title="Delete observation"
+                      aria-label={'Delete event at minute ' + event.minute} onClick={()=>deleteObservation(event)}><Trash2 size={15}/></button>
+                  </div>
+                </div>)}
+              </div>
               <form className="event-form" onSubmit={addEvent}><strong><Plus size={15}/> Add an observation</strong><div className="form-row"><label>MIN<input type="number" min="0" max="120" step="1" value={newEvent.minute} onChange={(e) => setNewEvent(p=>({...p,minute: Number(e.target.value)}))} required/></label><label>TEAM<select value={newEvent.team} onChange={e=>setNewEvent(p=>({...p,team:e.target.value as Team}))}><option>Us</option><option>Opponent</option></select></label><label className="type-select">EVENT<select value={newEvent.type} onChange={e=>setNewEvent(p=>({...p,type:e.target.value}))}>{EVENT_TYPES.map((type: string)=><option key={type}>{type}</option>)}</select></label></div><label className="note-label">WHAT HAPPENED?<textarea value={newEvent.note} onChange={e=>setNewEvent(p=>({...p,note:e.target.value.slice(0,240)}))} placeholder="e.g. Left side exposed during transition..." maxLength={240} rows={2} required/></label><button className="button-secondary" type="submit" disabled={events.length>=50}><Plus size={16}/> Log observation</button></form>
             </section>
 
@@ -393,7 +451,7 @@ function App() {
           </div>
 
           <section className="architecture" id="how-it-works"><div><span className="overline">BUILT FOR HYBRID</span><h2>Intelligence that meets you <em>where you are.</em></h2><p>Local when supported. Cloud when needed. Clear about which one actually answered.</p></div><div className="architecture-flow"><div><Cpu size={22}/><strong>Gemini Nano</strong><span>On your Chrome desktop</span></div><ArrowRight className="flow-arrow" size={22}/><div><Activity size={22}/><strong>Firebase AI Logic</strong><span>Routes every request</span></div><ArrowRight className="flow-arrow" size={22}/><div><Cloud size={22}/><strong>Gemini Cloud</strong><span>Fallback when unavailable</span></div></div></section>
-          <footer><span>© 2026 MATCHMIND · DEMONSTRATION PROTOTYPE</span><span><WifiOff size={15}/> Offline requires a supported on-device model <CircleHelp size={14}/></span></footer>
+          <footer><span>© 2026 MATCHMIND · COACHING WORKSPACE</span><span><WifiOff size={15}/> Offline requires a supported on-device model <CircleHelp size={14}/></span></footer>
         </div>
         <nav className="mobile-nav" aria-label="Mobile navigation">
           <a href="#overview"><BarChart3 size={19}/><span>Overview</span></a>
