@@ -68,3 +68,13 @@ test('cloud and hybrid inference require informed cloud-transfer consent; local 
   await expect(consent).not.toBeVisible();
   await expect(generate).toBeEnabled();
 });
+
+
+test('capture clean desktop and mobile visual review screenshots', async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto('/');
+  await page.screenshot({ path: 'artifacts/matchmind-desktop.png', fullPage: true });
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.reload();
+  await page.screenshot({ path: 'artifacts/matchmind-mobile.png', fullPage: true });
+});
