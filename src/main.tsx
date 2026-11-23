@@ -11,6 +11,7 @@ import { SESSION_KEY, validateSession, exportEventsCsv, exportBrief, eventDistri
 import { filterObservations } from './notebook.mjs';
 import { friendlyInferenceError } from './errors.mjs';
 import { inferenceLabel } from './inferenceSource.mjs';
+import { recordInferenceRun } from './inferenceHistory.mjs';
 import { structureCoachingReport, groupReportBlocks } from './reportFormat.mjs';
 import { analyzeEvidence } from './evidence.mjs';
 import { deriveSignals } from './signals.mjs';
@@ -21,6 +22,7 @@ type GameEvent = { id: string; minute: number; team: Team; type: string; note: s
 type EventDraft = Omit<GameEvent, 'id'>;
 type Mode = 'hybrid' | 'local' | 'cloud';
 type Goal = 'Halftime briefing' | 'Tactical adjustments' | 'Training priorities';
+type InferenceReceipt = { requested:Mode; source:string; durationMs:number; loggedEvents:number; citedEvents:number };
 
 const defaults = {
   minute: 45,
@@ -69,6 +71,7 @@ function App() {
   const [progress, setProgress] = useState<number | null>(null);
   const [durationMs, setDurationMs] = useState<number | null>(null);
   const [requestedMode, setRequestedMode] = useState<Mode | null>(null);
+  const [runHistory, setRunHistory] = useState<InferenceReceipt[]>([]);
   const visibleEvents = useMemo(() => filterObservations(events, {search:searchQuery, team:teamFilter, type:typeFilter}) as GameEvent[], [events, searchQuery, teamFilter, typeFilter]);
   const stats = useMemo(() => summarize(events), [events]);
   const distribution = useMemo(() => eventDistribution(events), [events]);
@@ -101,7 +104,7 @@ function App() {
     generationVersion.current += 1;
     // Consent is specific to the observations in the current request.
     // Editing or replacing notes must require a fresh explicit acknowledgement.
-    if (revokeCloudConsent) setPrivacyAcknowledged(false);
+    if (revokeCloudConsent) {setPrivacyAcknowledged(false);setRunHistory([]);}
     setOutput(''); setSource(''); setState('idle'); setError(''); setProgress(null);setDurationMs(null);setRequestedMode(null);
   };
   const saveSession = () => {
@@ -270,8 +273,14 @@ function App() {
         if(generationVersion.current===version)setProgress(Math.round(Math.min(1,Math.max(0,fraction))*100));
       });
       if(generationVersion.current!==version)return;
-      setDurationMs(performance.now()-startedAt);
+      const elapsed = performance.now()-startedAt;
+      const coverage=analyzeEvidence(result.text,events);
+      setDurationMs(elapsed);
       setOutput(result.text);setSource(result.source);setState('done');
+      setRunHistory(prev=>recordInferenceRun(prev,{
+        requested:submittedMode,source:result.source,durationMs:elapsed,
+        loggedEvents:coverage.loggedEventCount,citedEvents:coverage.linkedEventCount
+      }) as InferenceReceipt[]);
     } catch(error) {
       if(generationVersion.current!==version)return;
       setDurationMs(performance.now()-startedAt);
@@ -475,6 +484,21 @@ function App() {
                 </div>
                 <p>AI-generated guidance — verify with the full match context before acting.</p><div className="export-actions"><button onClick={downloadBrief}><Download size={15}/> Download briefing</button><button onClick={copyBrief}><Copy size={15}/> Copy briefing</button></div><span className="export-status" role="status">{exportStatus}</span></div>}
               {state === 'idle' && <div className="result-placeholder"><div className="orb"><Sparkles size={23}/></div><h3>Your next insight starts here.</h3><p>Choose a focus, then analyze real observations using Firebase AI Logic. No mock AI response is shown.</p></div>}
+              {runHistory.length > 0 && <section className="route-comparison" aria-label="Recent real inference routes">
+                <div className="route-comparison-heading">
+                  <div><span>HYBRID ENGINE · PROVENANCE</span><h3>Where your AI actually ran</h3></div>
+                  <span className="route-comparison-count">{runHistory.length} {runHistory.length===1?'RUN':'RUNS'}</span>
+                </div>
+                <div className="route-comparison-grid">
+                  {runHistory.map((run,index)=><div className="route-compare-card" key={index}>
+                    <span className="route-compare-overline">REQUESTED {run.requested.toUpperCase()}</span>
+                    <strong>{inferenceLabel(run.source)}</strong>
+                    <span>{(run.durationMs/1000).toFixed(1)}s response</span>
+                    <small>{run.citedEvents}/{run.loggedEvents} timestamps linked</small>
+                  </div>)}
+                </div>
+                <p>Most recent first · Real Firebase SDK source, never inferred from selected mode. Only route statistics are kept in this tab's memory; changing notes clears the comparison. Timestamp matches do not verify coaching accuracy.</p>
+              </section>}
             </section>
           </div>
 
