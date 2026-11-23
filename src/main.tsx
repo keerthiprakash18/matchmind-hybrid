@@ -151,10 +151,20 @@ function App() {
 
   const addEvent = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newEvent.note.trim() || events.length >= 50) return;
+    if (events.length >= 50) {
+      setSessionStatus('Maximum 50 observations reached. Remove an event before adding another.');
+      return;
+    }
+    if (!newEvent.note.trim() || !Number.isInteger(newEvent.minute) ||
+        newEvent.minute < 0 || newEvent.minute > 120 ||
+        !EVENT_TYPES.includes(newEvent.type) ||
+        (newEvent.team !== 'Us' && newEvent.team !== 'Opponent')) {
+      setSessionStatus('Check the observation: enter a whole minute from 0–120, a valid event type, and a description.');
+      return;
+    }
     const event: GameEvent = {
       id: crypto.randomUUID(),
-      minute: Math.max(0, Math.min(120, newEvent.minute)),
+      minute: newEvent.minute,
       team: newEvent.team,
       type: newEvent.type,
       note: newEvent.note.trim().slice(0, 240)
@@ -255,7 +265,7 @@ function App() {
           <div className="two-col">
             <section className="panel" id="notebook"><div className="panel-title"><div><span className="overline">THE INPUT</span><h2>Touchline notebook</h2><p>A simple record of what actually happened.</p></div><span className="counter">{events.length}/50</span></div>
               <div className="timeline">{events.length === 0 && <p className="empty">No events yet. Log your first observation below.</p>}{events.map((event) => <div className="event" key={event.id}><div className="minute">{event.minute}'</div><span className={'event-marker ' + (event.team === 'Us' ? 'ours' : 'theirs')}/><div className="event-body"><div className="event-top"><strong>{event.type}</strong><span className={event.team === 'Us' ? 'team-pill ours-pill' : 'team-pill'}>{event.team === 'Us' ? 'OUR TEAM' : 'OPPONENT'}</span></div><p>{event.note}</p></div><button className="icon-button" title="Delete this observation" aria-label={'Delete event at minute ' + event.minute} onClick={() => {setEvents(prev => prev.filter(e => e.id !== event.id));invalidateResult();}}><Trash2 size={15}/></button></div>)}</div>
-              <form className="event-form" onSubmit={addEvent}><strong><Plus size={15}/> Add an observation</strong><div className="form-row"><label>MIN<input type="number" min="0" max="120" value={newEvent.minute} onChange={(e) => setNewEvent(p=>({...p,minute: Number(e.target.value)}))} required/></label><label>TEAM<select value={newEvent.team} onChange={e=>setNewEvent(p=>({...p,team:e.target.value as Team}))}><option>Us</option><option>Opponent</option></select></label><label className="type-select">EVENT<select value={newEvent.type} onChange={e=>setNewEvent(p=>({...p,type:e.target.value}))}>{EVENT_TYPES.map((type: string)=><option key={type}>{type}</option>)}</select></label></div><label className="note-label">WHAT HAPPENED?<textarea value={newEvent.note} onChange={e=>setNewEvent(p=>({...p,note:e.target.value.slice(0,240)}))} placeholder="e.g. Left side exposed during transition..." maxLength={240} rows={2} required/></label><button className="button-secondary" type="submit" disabled={events.length>=50}><Plus size={16}/> Log observation</button></form>
+              <form className="event-form" onSubmit={addEvent}><strong><Plus size={15}/> Add an observation</strong><div className="form-row"><label>MIN<input type="number" min="0" max="120" step="1" value={newEvent.minute} onChange={(e) => setNewEvent(p=>({...p,minute: Number(e.target.value)}))} required/></label><label>TEAM<select value={newEvent.team} onChange={e=>setNewEvent(p=>({...p,team:e.target.value as Team}))}><option>Us</option><option>Opponent</option></select></label><label className="type-select">EVENT<select value={newEvent.type} onChange={e=>setNewEvent(p=>({...p,type:e.target.value}))}>{EVENT_TYPES.map((type: string)=><option key={type}>{type}</option>)}</select></label></div><label className="note-label">WHAT HAPPENED?<textarea value={newEvent.note} onChange={e=>setNewEvent(p=>({...p,note:e.target.value.slice(0,240)}))} placeholder="e.g. Left side exposed during transition..." maxLength={240} rows={2} required/></label><button className="button-secondary" type="submit" disabled={events.length>=50}><Plus size={16}/> Log observation</button></form>
             </section>
 
             <section className="panel ai-panel" id="ai-studio"><div className="panel-title"><div><span className="overline blue-text">THE INTELLIGENCE</span><h2>Hybrid AI studio <Sparkles size={21}/></h2><p>Turn raw observations into coaching decisions.</p></div></div>
@@ -266,7 +276,7 @@ function App() {
                 <button aria-pressed={mode==='cloud'} className={'mode '+(mode==='cloud'?'selected':'')} onClick={()=>{setMode('cloud');invalidateResult();}}><Cloud size={19}/><strong>Cloud</strong><small>Remote model only</small></button>
               </div>
               <div className="device-readiness"><Cpu size={15}/><span>{deviceStatus}</span></div>
-              <div className="focus-box"><label htmlFor="goal">WHAT DO YOU NEED?</label><select id="goal" value={goal} onChange={(e)=>{setGoal(e.target.value as Goal);invalidateResult();}}><option>Halftime briefing</option><option>Tactical adjustments</option><option>Training priorities</option></select><p>AI grounds its recommendations in your logged events. It may be wrong; a coach makes the final decision.</p></div>
+              <div className="focus-box"><label htmlFor="goal">WHAT DO YOU NEED?</label><select id="goal" value={goal} onChange={(e)=>{setGoal(e.target.value as Goal);invalidateResult();}}><option>Halftime briefing</option><option>Tactical adjustments</option><option>Training priorities</option></select><p>AI suggestions use only logged observations. The model may still be wrong; the coach makes the final decision.</p></div>
               <div className="cloud-privacy" role="note">
                 <LockKeyhole size={17} aria-hidden="true"/>
                 <div><strong>Know where your notes go</strong>
