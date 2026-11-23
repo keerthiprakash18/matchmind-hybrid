@@ -112,3 +112,16 @@ button:not(:disabled):active{transform:scale(.99)}
 /* WCAG 2.1 AA correction: new tactical cards need readable small text. */
 .signal-card-top span{color:#52627b}
 .signal-card p{color:#58677e}
+
+
+/* Guest-first, zero-friction hackathon entry. Keep the main product visible without a login gate. */
+.hero-actions{display:flex;align-items:center;flex-wrap:wrap;gap:10px;margin-top:22px}
+.hero-actions button{min-height:42px;display:inline-flex;align-items:center;justify-content:center;gap:9px;padding:11px 17px;border-radius:11px;font-weight:800;font-size:12px;line-height:1.35}
+.hero-primary{background:#fff;border:1px solid #fff;color:#1746c7;box-shadow:0 9px 22px rgba(0,0,0,.10)}
+.hero-primary:hover{background:#edf3ff;border-color:#edf3ff}
+.hero-secondary{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.56);color:#fff}
+.hero-secondary:hover{background:rgba(255,255,255,.22)}
+.hero-no-login{display:inline-flex;align-items:center;gap:7px;margin-top:14px;color:#eff5ff;font-size:10px;font-weight:700;line-height:1.4}
+.hero-no-login svg{flex-shrink:0}
+@media(max-width:570px){.hero-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px}.hero-actions button{padding:10px 9px;font-size:11px}.hero-no-login{font-size:10px}.hero{overflow:hidden}}
+@media(max-width:365px){.hero-actions{grid-template-columns:1fr}.hero-actions button{width:100%}}
