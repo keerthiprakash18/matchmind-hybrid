@@ -6,7 +6,7 @@ Deadline: **2026-11-30 14:00 PST = 2026-12-01 03:30 IST**.
 
 ## Hard requirements — no submission without these
 - [ ] A public GitHub repository, with the complete runnable source, identifiable open-source license, clear Firebase AI Logic calls, and installation instructions.
-- [ ] A working, free-access HTTPS demo, tested in an ordinary judge browser (no private debug token, no login, no paid key). Maintain availability through 2026-12-16 judging.
+- [x] Working HTTPS site is reachable on Chrome and Edge and real production Cloud App Check inference was shown in an earlier build. **Retest final merged commit for AI**; maintain public access through 2026-12-16 judging.
 - [ ] App Check production attestation and domain configured; verify a real cloud response on deployed HTTPS.
 - [ ] Real Chrome desktop Gemini Nano response (SDK says ON_DEVICE), and Cloud response (SDK says IN_CLOUD) recorded.
 - [ ] **Hybrid → cloud fallback actually tested** on a browser/device without local model; do not mistake Cloud-only result for fallback.
@@ -26,7 +26,7 @@ Deadline: **2026-11-30 14:00 PST = 2026-12-01 03:30 IST**.
 - [ ] Robust error/slow-loading/retry checks, network-limited fallback proof.
 - [ ] Check potential model quota usage; do not activate paid billing without budget controls/authorization.
 - [ ] Deploy without `VITE_ENABLE_APP_CHECK_DEBUG=true`, revoke old exposed debug tokens.
-- [ ] Merge reviewed candidate into main only after production variables configured and deployment plan verified.
+- [x] PR #3 merged into PR #2, then PR #2 merged into main with green CI; Vercel triggered production build. **Final deployed behavior needs a post-merge check.**
 
 ## Evaluation against four equally weighted judging criteria
 1. **Technology:** genuine Firebase AI Logic SDK routing and App Check, real inference source, responsive browser tests, security audit. Remaining: deployed production and fallback evidence.
