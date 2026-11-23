@@ -337,7 +337,7 @@ function App() {
           <section className="insight-panel" aria-label="Observation frequency over time">
             <div><span className="overline">TACTICAL SIGNAL</span><h3>Events through the match</h3><p>These bars show how many events you recorded in each period — not measured possession or performance.</p></div>
             <div className="distribution" role="img" aria-label={'Logged events: 0 to 29 minutes '+distribution[0]+', 30 to 59 '+distribution[1]+', 60 to 89 '+distribution[2]+', 90 to 120 '+distribution[3]}>
-              {distribution.map((count,index)=><div className="dist-item" key={index}><span className="dist-count">{count}</span><div className="dist-track"><div className="dist-fill" style={{height:(count===0?0:Math.max(8,100*count/topDistribution))+'%'}}/></div><small>{index*30}–{index===3?120:index*30+29}′</small></div>)}
+              {distribution.map((count,index)=><div className="dist-item" key={index}><span className="dist-count">{count}</span><div className="dist-track"><div className={'dist-fill'+(count===0?' empty-bucket':'')} style={{height:(count===0?0:Math.max(8,100*count/topDistribution))+'%'}}/></div><small>{index*30}–{index===3?120:index*30+29}′</small></div>)}
             </div>
           </section>
 
