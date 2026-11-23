@@ -1,6 +1,6 @@
 # MatchMind — #BuildHybridAI 2026 Devpost-ready submission copy
 
-**Submission status:** All written sections are drafted. **DO NOT mark submitted until:** (1) repository is public and license detectable; (2) a real public YouTube demo video URL is provided; (3) final HTTPS build is checked. No video URL is invented here.
+**Submission status:** All written sections are drafted. **DO NOT mark submitted until:** (1) repository remains public and license is detectable; (2) a real public YouTube demo video URL is provided; (3) final HTTPS build is checked. No video URL is invented here.
 
 ## Project title
 **MatchMind — Hybrid AI for Grassroots Football Coaches**
@@ -73,7 +73,7 @@ Validate Hybrid → Cloud fallback in a browser without a local model; seek feed
 Original MatchMind client, synthetic football match-notebook workflow, Firebase AI Logic cloud/local/hybrid integration, Firebase App Check configuration, event statistics, route provenance, evidence receipt, local save/export features, browser-focused design, performance/security checks and production deployment were implemented during the hackathon window. AI coding assistance was used. No source code, trademarks or production player data from FC ARENA are used.
 
 ## Review checklist — do not skip
-- [ ] GitHub repository switched from Private to Public; verify MIT badge visible.
+- [x] GitHub repository is now Public. MIT LICENSE file confirmed; verify GitHub MIT badge visible.
 - [ ] Production HTTPS final build opens without a login, and Cloud App Check request succeeds.
 - [ ] On-device and Hybrid local screenshots captured from a real compatible Chrome desktop.
 - [ ] If claiming automatic fallback, include Hybrid mode returning actual Cloud source on unsupported browser.
