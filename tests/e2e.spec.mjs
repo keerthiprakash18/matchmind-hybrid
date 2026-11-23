@@ -130,3 +130,70 @@ test('keyboard users can skip directly to the workspace', async ({ page }) => {
   await page.keyboard.press('Enter');
   await expect(page).toHaveURL(/#main-content$/);
 });
+
+
+test('coach can correct an observation without deleting it, and undo accidental removal', async ({page}) => {
+  await page.goto('/');
+  await page.getByRole('button',{name:'Edit event at minute 8'}).click();
+  await page.getByRole('textbox',{name:'Edit observation text at 8'}).fill('Recovery on the left in the 8th minute.');
+  await page.getByRole('button',{name:'Save changes'}).click();
+  await expect(page.getByText('Recovery on the left in the 8th minute.')).toBeVisible();
+  await expect(page.locator('.event')).toHaveCount(6);
+  await page.getByRole('button',{name:'Delete event at minute 8'}).click();
+  await expect(page.locator('.event')).toHaveCount(5);
+  await page.getByRole('button',{name:'Undo deletion'}).click();
+  await expect(page.locator('.event')).toHaveCount(6);
+  await expect(page.getByText('Recovery on the left in the 8th minute.')).toBeVisible();
+});
+
+test('filters find evidence without modifying AI summary or event counts', async ({page}) => {
+  await page.goto('/');
+  const notes=page.locator('#notebook');
+  await notes.getByLabel('Filter by team').selectOption('Opponent');
+  await expect(notes.locator('.event')).toHaveCount(2);
+  await expect(page.getByText('Showing 2 of 6 logged observations.')).toBeVisible();
+  await expect(page.getByText('From 6 logged observations').first()).toBeVisible();
+  await notes.getByLabel('Filter by event').selectOption('Wide overload');
+  await expect(notes.locator('.event')).toHaveCount(1);
+  await notes.getByLabel('Search notes').fill('no matching observations');
+  await expect(notes.locator('.event')).toHaveCount(0);
+  await expect(page.getByText(/Your original notes have not changed/)).toBeVisible();
+  await notes.getByLabel('Search notes').fill('');
+  await notes.getByLabel('Filter by team').selectOption('All');
+  await notes.getByLabel('Filter by event').selectOption('All');
+  await expect(notes.locator('.event')).toHaveCount(6);
+});
+
+test('portable JSON export and import works locally with confirmation and rejects invalid data', async ({page}) => {
+  await page.goto('/');
+  const download=page.waitForEvent('download');
+  await page.getByRole('button',{name:'Export session'}).click();
+  const sessionDownload=await download;
+  expect(sessionDownload.suggestedFilename()).toBe('matchmind-session.json');
+  const raw=readFileSync(await sessionDownload.path(),'utf8');
+  const json=JSON.parse(raw);
+  expect(json.events).toHaveLength(6);
+  expect(json).not.toHaveProperty('output');
+  page.once('dialog', dialog=>dialog.accept());
+  await page.getByRole('button',{name:'Clear notes'}).click();
+  await expect(page.locator('.event')).toHaveCount(0);
+  page.once('dialog',dialog=>dialog.accept());
+  await page.getByLabel('Choose MatchMind session JSON file').setInputFiles({
+    name:'matchmind-session.json',mimeType:'application/json',buffer:Buffer.from(raw)
+  });
+  await expect(page.locator('.event')).toHaveCount(6);
+  const before=await page.locator('.event').count();
+  await page.getByLabel('Choose MatchMind session JSON file').setInputFiles({
+    name:'invalid-session.json',mimeType:'application/json',buffer:Buffer.from('{"schemaVersion":2,"events":[{"id":"../../"}]}')
+  });
+  await expect(page.getByText(/Import rejected/)).toBeVisible();
+  await expect(page.locator('.event')).toHaveCount(before);
+});
+
+test('320px and 200 percent equivalent narrow viewport has no horizontal page overflow', async ({page}) => {
+  await page.setViewportSize({width:320,height:760});
+  await page.goto('/');
+  const overflow=await page.evaluate(()=>document.documentElement.scrollWidth-document.documentElement.clientWidth);
+  expect(overflow).toBeLessThanOrEqual(1);
+  await expect(page.getByRole('button',{name:'Import session'})).toBeVisible();
+});
