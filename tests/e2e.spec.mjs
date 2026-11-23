@@ -90,3 +90,20 @@ test('tactical signals are derived from observations and clear with the notebook
   await expect(page.locator('.signal-card')).toHaveCount(0);
   await expect(page.getByText(/No tactical findings are inferred from an empty notebook/i)).toBeVisible();
 });
+
+
+test('judges can use the demo without registration, and start a blank match safely', async ({page}) => {
+  await page.goto('/');
+  await expect(page.getByText('No login required · Fictional data ready to try')).toBeVisible();
+  await expect(page.getByRole('button',{name:'Explore the demo'})).toBeVisible();
+  await page.getByRole('button',{name:'Explore the demo'}).click();
+  await expect(page.locator('#ai-studio')).toBeVisible();
+  page.once('dialog',dialog=>dialog.accept());
+  await page.getByRole('button',{name:'Start blank match'}).click();
+  await expect(page.locator('.event')).toHaveCount(0);
+  await expect(page.getByRole('textbox',{name:'Our team name'})).toHaveValue('Our team');
+  page.once('dialog',dialog=>dialog.accept());
+  await page.getByRole('button',{name:'Load demo match'}).click();
+  await expect(page.locator('.event')).toHaveCount(6);
+  await expect(page.getByRole('textbox',{name:'Our team name'})).toHaveValue('Eastport FC');
+});
