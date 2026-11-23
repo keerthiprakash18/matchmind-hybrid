@@ -17,6 +17,10 @@ test('AUDIT: actual live headers and public page/asset footprint', async ({page}
   ];
   const posture=Object.fromEntries(headerNames.map(n=>[n,h[n]||'MISSING']));
   console.log('AUDIT_HEADER_POSTURE '+JSON.stringify(posture));
+  if(production) {
+    expect(h['content-security-policy']).toContain("default-src 'self'");
+    expect(h['content-security-policy']).toContain("frame-ancestors 'none'");
+  }
   // Observe missing security headers as findings. Do not block launch on an audit-only branch.
   const scripts=await page.locator('script[src]').evaluateAll(nodes=>nodes.map(n=>n.getAttribute('src')));
   console.log('AUDIT_SCRIPT_COUNT '+scripts.length);
@@ -163,4 +167,22 @@ test('AUDIT: live Firebase model output, evidence controls, exports and report a
   mkdirSync('artifacts/audit',{recursive:true});
   await page.screenshot({path:'artifacts/audit/prod-generated-report.png',fullPage:true});
   expect(scan.violations.map(v=>({id:v.id,targets:v.nodes.map(n=>n.target)}))).toEqual([]);
+});
+
+
+test('AUDIT: empty time periods must have zero-height bars', async ({page})=>{
+  await page.goto('/');
+  page.once('dialog',d=>d.accept());
+  await page.getByRole('button',{name:'Start blank match'}).click();
+  await expect(page.locator('.dist-count')).toHaveText(['0','0','0','0']);
+  const barSizes=await page.locator('.dist-fill').evaluateAll(nodes=>nodes.map(el=>({
+    declared:el.style.height,
+    measured:Math.round(el.getBoundingClientRect().height)
+  })));
+  expect(barSizes).toEqual(Array.from({length:4},()=>({declared:'0%',measured:0})));
+  await page.getByPlaceholder('e.g. Left side exposed during transition...').fill('One logged event at minute 12.');
+  await page.getByRole('button',{name:'Log observation'}).click();
+  const sizes=await page.locator('.dist-fill').evaluateAll(nodes=>nodes.map(el=>Math.round(el.getBoundingClientRect().height)));
+  expect(sizes[0]).toBeGreaterThan(0);
+  expect(sizes.slice(1)).toEqual([0,0,0]);
 });
