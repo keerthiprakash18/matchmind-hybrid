@@ -265,3 +265,7 @@ html{scroll-padding-top:20px}
   font-size:11px;font-weight:800;text-underline-offset:3px}
 .device-guide a:focus-visible{outline:3px solid #8dacf8;outline-offset:3px}
 @media(max-width:570px){.device-guide summary,.device-guide p,.device-guide a{font-size:12px}}
+
+/* Surface every evidence-backed signal instead of arbitrarily truncating the list. */
+@media(min-width:1201px){.signal-grid{grid-template-columns:repeat(4,minmax(0,1fr))}}
+@media(min-width:601px) and (max-width:1200px){.signal-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
