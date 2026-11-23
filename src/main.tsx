@@ -450,9 +450,9 @@ function App() {
                     <div className="report-section-content">
                       {groupReportBlocks(section.blocks).map((block, itemIndex) =>
                         block.kind === 'bullets'
-                          ? <ul className="report-list" key={itemIndex}>{block.items.map((item: string,j: number)=><li key={j}>{renderEmphasis(item)}</li>)}</ul>
+                          ? <ul className="report-list" key={itemIndex}>{(block.items ?? []).map((item: string,j: number)=><li key={j}>{renderEmphasis(item)}</li>)}</ul>
                           : block.kind === 'ordered'
-                            ? <ol className="report-list" key={itemIndex}>{block.items.map((item: string,j: number)=><li key={j}>{renderEmphasis(item)}</li>)}</ol>
+                            ? <ol className="report-list" key={itemIndex}>{(block.items ?? []).map((item: string,j: number)=><li key={j}>{renderEmphasis(item)}</li>)}</ol>
                             : block.kind === 'heading'
                               ? <h4 key={itemIndex}>{renderEmphasis(block.text)}</h4>
                               : <p key={itemIndex}>{renderEmphasis(block.text)}</p>
