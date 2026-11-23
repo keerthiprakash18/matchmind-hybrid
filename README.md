@@ -2,7 +2,14 @@
 
 **Match observations → evidence-linked coaching decisions.** A football analysis workspace powered by Firebase AI Logic hybrid inference. The goal is to make useful tactical help available on compatible Chrome devices, with a Firebase cloud option when on-device inference is not available.
 
-> **State:** V0.2 candidate on a review branch. The owner has demonstrated real **Cloud**, **On-device**, and **Hybrid → On-device** inference using the Firebase SDK-reported source in Chrome desktop. **Hybrid → Cloud fallback remains unverified** until tested on a browser/device without a local model. Do not describe the project as universally offline-capable.
+> **Release status:** V0.2 is merged into `main` and deployed to Vercel. User screenshots demonstrate real Cloud, On-device and Hybrid → On-device inference in previously tested builds. A successful Cloud request on an earlier production build was reported. **Actual Hybrid → Cloud fallback and the precise newest release's AI behavior still require independent real-browser verification.** Do not claim universally offline operation.
+
+## Live project
+
+- **Website:** https://matchmind-hybrid.vercel.app/
+- **Source:** https://github.com/keerthiprakash18/matchmind-hybrid
+- **Quick demo:** open the site → Explore the demo → select a mode → consent if cloud can be used → Generate match intelligence. Web Chrome desktop is the required local-model platform.
+- No account or paid key required for the deployed synthetic demo. Cloud quota and on-device browser support still apply.
 
 ## Features
 - Editable fictional fixture labels, synthetic match-event demo and precise event-based statistics.
@@ -44,7 +51,7 @@ npm audit --audit-level=high
 ```
 
 - Unit tests cover observation validation, prompt boundaries, session schema, CSV injection and error redaction.
-- Browser QA, genuine Chrome on-device inference and real hybrid fallback require device testing. **Do not simulate a local-model result.**
+- Chrome local and Cloud inference were demonstrated in user screenshots. **Hybrid → Cloud fallback still needs a genuine unsupported-browser test. Do not simulate a route.**
 - The previously vulnerable transitive `@grpc/grpc-js@1.9.16` has been overridden with the patched `1.13.6`, and the lockfile includes a verified registry integrity hash. CI must still validate the full dependency tree and the actual Firebase build. Don't use `npm audit fix --force` blindly.
 - Current app sends observations to cloud only when generating cloud/hybrid inference; it does not upload them to Firestore.
 - Developer tokens shown in older screenshots should be revoked and replaced outside public view.
@@ -53,6 +60,6 @@ See the [competition release acceptance criteria](docs/RELEASE_ACCEPTANCE.md), [
 
 ## Submission gates
 
-Public repository with license, published deployed build, real inference evidence, accessibility and security checks, and a public <=3-minute English YouTube demonstration. Official contest deadline **November 30, 2026, 2:00 p.m. PST**.
+Repository **must be set to Public** (currently not yet confirmed), with detected MIT license; published deployed build, real inference evidence, accessibility and security checks, and a public <=3-minute English YouTube demonstration. Official contest deadline **November 30, 2026, 2:00 p.m. PST**.
 
 This independent project is **not connected to FC ARENA**. Match teams and observations are fictional, not a real sports data feed. MatchMind does not promise winning a prize.
