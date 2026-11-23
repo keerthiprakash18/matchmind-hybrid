@@ -125,3 +125,39 @@ button:not(:disabled):active{transform:scale(.99)}
 .hero-no-login svg{flex-shrink:0}
 @media(max-width:570px){.hero-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px}.hero-actions button{padding:10px 9px;font-size:11px}.hero-no-login{font-size:10px}.hero{overflow:hidden}}
 @media(max-width:365px){.hero-actions{grid-template-columns:1fr}.hero-actions button{width:100%}}
+
+
+/* Competition polish: accessible keyboard entry, calm hierarchy, and honest loading. */
+.skip-link {
+  position:fixed;top:12px;left:12px;z-index:1000;transform:translateY(-150%);
+  padding:12px 18px;border-radius:10px;background:#123d98;color:#fff;
+  font-weight:800;font-size:14px;box-shadow:0 8px 24px rgba(10,25,60,.22);
+}
+.skip-link:focus-visible{transform:translateY(0);outline:3px solid #ffd36e}
+#main-content:focus{outline:none}
+.analysis-status{margin-top:14px;padding:13px 14px;background:#edf5ff;border:1px solid #cddff7;
+  border-radius:10px;color:#214477;font-size:12px;line-height:1.6}
+.analysis-status:before{content:'';display:inline-block;width:10px;height:10px;margin-right:9px;
+  border:2px solid #a8c4f2;border-top-color:#285ee7;border-radius:50%;
+  animation:matchmind-spin .8s linear infinite;vertical-align:middle}
+@keyframes matchmind-spin{to{transform:rotate(360deg)}}
+@media(prefers-reduced-motion:reduce){.analysis-status:before{animation:none;border-color:#285ee7}}
+html{scroll-padding-top:20px}
+#main-content{isolation:isolate}
+.hero{box-shadow:0 20px 42px rgba(17,36,72,.10)}
+.match-card,.stat-card,.panel,.ops-panel,.insight-panel,.signal-card,.architecture{
+  transition:border-color .18s ease,box-shadow .18s ease}
+@media(hover:hover){
+  .stat-card:hover,.signal-card:hover{border-color:#cbd8f0;box-shadow:0 12px 26px rgba(28,55,95,.06)}
+}
+.event-body p{overflow-wrap:anywhere}
+.event-form :is(input,textarea,select):focus-visible,.focus-box select:focus-visible{
+  outline:3px solid #7fa8ff;outline-offset:1px}
+:where(.ops-buttons,.export-actions,.hero-actions) button:disabled{opacity:.48}
+@media(max-width:570px){
+  .mode{min-height:120px}
+  .mode small{font-size:10px}
+  .stat-card{min-width:0}
+  .stat-foot{line-height:1.5}
+  .match-notice{line-height:1.55}
+}
