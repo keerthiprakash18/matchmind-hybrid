@@ -339,3 +339,18 @@ html{scroll-padding-top:20px}
   .route-compare-card small{grid-column:1/-1}
   .route-comparison>p{font-size:11px}
 }
+
+/* Independent production audit 2026-11-23: achieve accessible contrast on actual
+   Firebase-configured state and model-generated uncertainty index. */
+.ready-badge { color: #07563b; background-color: #e2f5ec; }
+.report-section.section-limitations .report-section-index {
+  color: #684400; background-color: #fff0cb;
+}
+/* Narrow viewport: keep dropdown labels readable without spilling sideways. */
+@media (max-width: 570px) {
+  .event-form .form-row { grid-template-columns: 60px 78px minmax(0, 1fr); gap: 7px; }
+  .event-form .form-row select { text-overflow: ellipsis; }
+}
+
+/* An empty bucket must never render a visible bar, even during the transition. */
+.dist-fill.empty-bucket{height:0!important;min-height:0;transition:none}

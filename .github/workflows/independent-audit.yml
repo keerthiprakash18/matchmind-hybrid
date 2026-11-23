@@ -1,0 +1,90 @@
+name: MatchMind independent read-only audit
+
+on:
+  push:
+    branches: [main, 'feat/**']
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  local-security-ux:
+    name: Local source and non-destructive browser audit
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - run: npm install --no-save --package-lock=false @playwright/test@1.56.1 @axe-core/playwright@4.10.2
+      - run: npx playwright install --with-deps chromium
+      - name: Start source in isolated Vite environment
+        shell: bash
+        run: |
+          npm run dev -- --port 4173 > /tmp/matchmind-audit.log 2>&1 &
+          for i in $(seq 1 40); do
+            if curl --silent --fail http://127.0.0.1:4173/ > /dev/null; then exit 0; fi
+            sleep 1
+          done
+          cat /tmp/matchmind-audit.log
+          exit 1
+      - name: Run browser audit against local app (no model requests)
+        run: npx playwright test tests/independent-audit.spec.mjs --workers=2 --reporter=line
+        env:
+          BASE_URL: http://127.0.0.1:4173
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: independent-audit-local-visuals
+          path: artifacts/audit/local-*.png
+          if-no-files-found: ignore
+          retention-days: 7
+
+  public-production:
+    if: github.ref == 'refs/heads/main'
+    name: Read-only deployed HTTPS browser audit
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - run: npm install --no-save --package-lock=false @playwright/test@1.56.1 @axe-core/playwright@4.10.2
+      - run: npx playwright install --with-deps chromium
+      - name: Require production to serve the new CSP before starting acceptance
+        shell: bash
+        run: |
+          set -euo pipefail
+          for attempt in $(seq 1 75); do
+            if curl -fsSI 'https://matchmind-hybrid.vercel.app/?production-gate=1' | grep -qi '^content-security-policy:'; then
+              echo 'New production CSP is live.'
+              exit 0
+            fi
+            sleep 4
+          done
+          echo 'Production never served the audited CSP; release acceptance blocked.' >&2
+          exit 1
+      - name: Audit published site with one real Hybrid AI request and safe UI tests
+        run: npx playwright test tests/independent-audit.spec.mjs --workers=1 --reporter=line
+        env:
+          BASE_URL: https://matchmind-hybrid.vercel.app
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: independent-audit-public-visuals
+          path: artifacts/audit/prod-*.png
+          if-no-files-found: ignore
+          retention-days: 7

@@ -86,7 +86,7 @@ jobs:
           cat /tmp/matchmind-vite.log
           exit 1
       - name: Run browser smoke tests
-        run: npx playwright test tests/e2e.spec.mjs tests/accessibility.spec.mjs --reporter=line
+        run: npx playwright test tests/e2e.spec.mjs tests/accessibility.spec.mjs tests/independent-audit.spec.mjs --reporter=line
         env:
           BASE_URL: http://127.0.0.1:4173
       - name: Store synthetic-only UI screenshots
