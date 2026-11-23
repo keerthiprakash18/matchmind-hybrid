@@ -12,6 +12,7 @@ import { friendlyInferenceError } from './errors.mjs';
 import { inferenceLabel } from './inferenceSource.mjs';
 import { parseReportBlocks } from './reportFormat.mjs';
 import { analyzeEvidence } from './evidence.mjs';
+import { deriveSignals } from './signals.mjs';
 import './style.css';
 
 type Team = 'Us' | 'Opponent';
@@ -63,6 +64,7 @@ function App() {
   const distribution = useMemo(() => eventDistribution(events), [events]);
   const topDistribution = Math.max(1,...distribution);
   const evidence = useMemo(() => analyzeEvidence(output,events), [output,events]);
+  const signals = useMemo(() => deriveSignals(events), [events]);
   const lastLoggedMinute = events.length ? Math.max(...events.map(e=>e.minute)) : null;
   useEffect(() => {
     let active = true;
@@ -203,6 +205,21 @@ function App() {
             <div className="distribution" role="img" aria-label={'Logged events: 0 to 29 minutes '+distribution[0]+', 30 to 59 '+distribution[1]+', 60 to 89 '+distribution[2]+', 90 to 120 '+distribution[3]}>
               {distribution.map((count,index)=><div className="dist-item" key={index}><span className="dist-count">{count}</span><div className="dist-track"><div className="dist-fill" style={{height:(Math.max(8,100*count/topDistribution))+'%'}}/></div><small>{index*30}–{index===3?120:index*30+29}′</small></div>)}
             </div>
+          </section>
+
+          <section className="signal-section" aria-label="Rule-based tactical signals">
+            <div className="signal-section-head">
+              <div><span className="overline">EVIDENCE FIRST</span><h2>Signals worth reviewing</h2></div>
+              <span className="signal-method"><ShieldCheck size={15}/> Rule-based · Not AI predictions</span>
+            </div>
+            {signals.length ? <div className="signal-grid">{signals.map(item=>
+              <article className={'signal-card '+item.tone} key={item.id}>
+                <div className="signal-card-top"><Compass size={18}/><span>{item.count} logged {item.count===1?'event':'events'}</span></div>
+                <h3>{item.title}</h3>
+                <p>{item.detail}</p>
+                <small>Evidence: {item.minutes.length ? item.minutes.map(minute=>minute+'′').join(' · ') : 'Check notebook'}</small>
+              </article>
+            )}</div> : <p className="signal-empty">Log observations to see evidence-linked coaching questions. No tactical findings are inferred from an empty notebook.</p>}
           </section>
 
           <div className="two-col">
