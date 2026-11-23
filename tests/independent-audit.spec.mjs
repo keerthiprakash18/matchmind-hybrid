@@ -129,6 +129,14 @@ test('AUDIT: responsive and WCAG scans at every breakpoint, report ALL findings'
 test('AUDIT: live Firebase model output, evidence controls, exports and report accessibility', async({page})=>{
   test.skip(!production,'Real AI request only runs once on the authorized production site.');
   test.setTimeout(150000);
+  await page.addInitScript(() => {
+    window.__matchmindAuditCspViolations = [];
+    document.addEventListener('securitypolicyviolation', event => {
+      window.__matchmindAuditCspViolations.push({
+        directive:event.violatedDirective, disposition:event.disposition, blockedOrigin:event.blockedURI?.slice(0,120)
+      });
+    });
+  });
   await page.goto('/');
   const studio=page.locator('#ai-studio');
   await studio.getByRole('button',{name:/^Hybrid Device first, cloud fallback$/i}).click();
@@ -155,6 +163,9 @@ test('AUDIT: live Firebase model output, evidence controls, exports and report a
   await expect(studio.locator('.evidence-receipt')).toContainText('ACTUAL ROUTE');
   const source=await studio.locator('.evidence-metrics').innerText();
   console.log('AUDIT_REAL_INFERENCE_SOURCE '+source.replace(/\\s+/g,' '));
+  const violations=await page.evaluate(()=>window.__matchmindAuditCspViolations ?? []);
+  console.log('AUDIT_CSP_VIOLATIONS '+JSON.stringify(violations));
+  expect(violations.filter(v=>v.disposition==='enforce'),'CSP must not break real Firebase AI generation').toEqual([]);
   const scan=await new AxeBuilder({page}).include('#ai-studio').withTags(['wcag2a','wcag2aa','wcag21a','wcag21aa']).analyze();
   console.log('AUDIT_DYNAMIC_AXE '+JSON.stringify(scan.violations.map(v=>({id:v.id,impact:v.impact,targets:v.nodes.map(n=>n.target)}))));
   const promise=page.waitForEvent('download');
