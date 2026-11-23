@@ -60,6 +60,6 @@ See [privacy](PRIVACY.md), [security disclosure](SECURITY.md), [release acceptan
 
 ## Submission gates
 
-Repository **must be set to Public** (currently not yet confirmed), with detected MIT license; published deployed build, real inference evidence, accessibility and security checks, and a public <=3-minute English YouTube demonstration. Official contest deadline **November 30, 2026, 2:00 p.m. PST**.
+Public repository verified (2026-11-23) with MIT LICENSE file; published deployed build, real inference evidence, accessibility and security checks, and a public <=3-minute English YouTube demonstration. Official contest deadline **November 30, 2026, 2:00 p.m. PST**.
 
 This independent project is **not connected to FC ARENA**. Match teams and observations are fictional, not a real sports data feed. MatchMind does not promise winning a prize.
