@@ -24,9 +24,9 @@
 - The code is open-source under the repository license. No affiliation with football clubs or FC ARENA.
 
 ## URLs and screenshots to add only after deployment
-- Public demo: **PENDING — do not submit placeholder**
+- Public demo: https://matchmind-hybrid.vercel.app/ (served on Vercel, no authentication gate)
 - Source repository: https://github.com/keerthiprakash18/matchmind-hybrid
-- 3-minute YouTube demo: **PENDING — do not submit placeholder**
+- 3-minute YouTube demo: **PENDING genuine recording and public upload**
 - Evidence screenshots: **PENDING — redact all tokens and credentials**
 
 The test app should remain publicly accessible through the end of the judging period (December 16, 2026). Verify it again after the final submission.
