@@ -40,5 +40,5 @@ export function exportBrief({home,away,events,goal,output,source}) {
   return lines.join('\n');
 }
 export function eventDistribution(events) {
-  return [0,30,60,90].map(start=>events.filter(e=>e.minute>=start && e.minute<start+30).length);
+  return [0,30,60,90].map(start=>events.filter(e=>e.minute>=start && e.minute<=(start===90?120:start+29)).length);
 }
