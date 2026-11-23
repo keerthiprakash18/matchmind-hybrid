@@ -103,17 +103,48 @@ test('AUDIT: 50-observation cap cannot be bypassed through the form',async({page
   await expect(page.locator('.counter')).toHaveText('50/50');
 });
 
-test('AUDIT: responsive, keyboard and WCAG 2.1 AA checks across six widths',async({page})=>{
-  for(const width of [320,360,390,768,1024,1440]){
+test('AUDIT: responsive and WCAG scans at every breakpoint, report ALL findings',async({page})=>{
+  const all=[];
+  for(const width of [320,360,390,570,768,1024,1440]){
     await page.setViewportSize({width,height:850});
     await page.goto('/');
-    const pageOverflow=await page.evaluate(()=>document.documentElement.scrollWidth - document.documentElement.clientWidth);
-    expect(pageOverflow,'horizontal overflow at '+width).toBeLessThanOrEqual(2);
+    const overflow=await page.evaluate(()=>document.documentElement.scrollWidth-document.documentElement.clientWidth);
+    if(overflow>2) all.push({width,kind:'horizontal-overflow',pixels:overflow});
     const scan=await new AxeBuilder({page}).withTags(['wcag2a','wcag2aa','wcag21a','wcag21aa']).analyze();
-    expect(scan.violations.map(v=>({id:v.id,impact:v.impact,targets:v.nodes.map(n=>n.target)})),'WCAG at '+width).toEqual([]);
-    if(width===390 || width===1440){
+    const failures=scan.violations.map(v=>({id:v.id,impact:v.impact,targets:v.nodes.map(n=>n.target)}));
+    console.log('AUDIT_AXE '+JSON.stringify({width,failures,overflow}));
+    for(const f of failures)all.push({width,...f});
+    if(width===320 || width===390 || width===1440){
       mkdirSync('artifacts/audit',{recursive:true});
       await page.screenshot({path:'artifacts/audit/'+(production?'prod':'local')+'-'+width+'.png',fullPage:true});
     }
   }
+  expect(all,'Independent WCAG/reflow findings across all widths').toEqual([]);
+});
+
+test('AUDIT: live Firebase model output, evidence controls, exports and report accessibility', async({page})=>{
+  test.skip(!production,'Real AI request only runs once on the authorized production site.');
+  test.setTimeout(150000);
+  await page.goto('/');
+  const studio=page.locator('#ai-studio');
+  await studio.getByRole('button',{name:/^Hybrid Device first, cloud fallback$/i}).click();
+  await studio.getByRole('checkbox',{name:/may use cloud inference/i}).check();
+  await studio.getByRole('button',{name:/Generate match intelligence/i}).click();
+  await expect(studio.getByText('Analysis generated')).toBeVisible({timeout:120000});
+  await expect(studio.locator('.ai-result .report-section').first()).toBeVisible();
+  await expect(studio.locator('.evidence-receipt')).toContainText('ACTUAL ROUTE');
+  const source=await studio.locator('.evidence-metrics').innerText();
+  console.log('AUDIT_REAL_INFERENCE_SOURCE '+source.replace(/\\s+/g,' '));
+  const scan=await new AxeBuilder({page}).include('#ai-studio').withTags(['wcag2a','wcag2aa','wcag21a','wcag21aa']).analyze();
+  console.log('AUDIT_DYNAMIC_AXE '+JSON.stringify(scan.violations.map(v=>({id:v.id,impact:v.impact,targets:v.nodes.map(n=>n.target)}))));
+  const promise=page.waitForEvent('download');
+  await studio.getByRole('button',{name:'Download briefing'}).click();
+  const file=await promise;
+  expect(file.suggestedFilename()).toBe('matchmind-coaching-brief.md');
+  const raw=await (await import('node:fs/promises')).readFile(await file.path(),'utf8');
+  expect(raw).toMatch(/## AI analysis/);
+  expect(raw).not.toMatch(/API_KEY|FIREBASE_APPCHECK_DEBUG_TOKEN/);
+  mkdirSync('artifacts/audit',{recursive:true});
+  await page.screenshot({path:'artifacts/audit/prod-generated-report.png',fullPage:true});
+  expect(scan.violations.map(v=>({id:v.id,targets:v.nodes.map(n=>n.target)}))).toEqual([]);
 });
