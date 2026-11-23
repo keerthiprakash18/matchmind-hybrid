@@ -8,3 +8,10 @@ dist/
 coverage/
 
 *.tsbuildinfo
+
+# Local upgrade backups and temporary credential exports
+.matchmind-backups/
+*.bak-before-model-fix
+*.pem
+*.p12
+*.key
