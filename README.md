@@ -2,14 +2,14 @@
 
 **Match observations → evidence-linked coaching decisions.** A football analysis workspace powered by Firebase AI Logic hybrid inference. The goal is to make useful tactical help available on compatible Chrome devices, with a Firebase cloud option when on-device inference is not available.
 
-> **State:** V0.2 candidate on a review branch. The owner has demonstrated real Cloud AI analysis; on-device inference and actual hybrid fallback are **not yet verified**. Do not describe the project as universally offline-capable.
+> **State:** V0.2 candidate on a review branch. The owner has demonstrated real **Cloud**, **On-device**, and **Hybrid → On-device** inference using the Firebase SDK-reported source in Chrome desktop. **Hybrid → Cloud fallback remains unverified** until tested on a browser/device without a local model. Do not describe the project as universally offline-capable.
 
 ## Features
 - Editable fictional fixture labels, synthetic match-event demo and precise event-based statistics.
-- Manual observation timeline, pressure/event distribution and bounded 50-event notebook.
+- Manual observation timeline, truthful last-recorded minute, event distribution and bounded 50-event notebook.
 - AI focus modes: halftime briefing, tactical adjustments and training priorities.
 - AI inference: **Hybrid**, **On-device only**, **Cloud only** using Firebase AI Logic.
-- SDK-provided inference provenance badge. If inference source is absent, the badge says **SOURCE UNVERIFIED** — never assume an on-device result.
+- SDK-provided inference provenance badge with an **Inference & evidence receipt**: requested mode, actual route, elapsed time, timestamp coverage and unlogged timestamp warning. This is not a guarantee that AI reasoning is accurate.
 - Explicit tab-only save/restore and clear. No backend database or silent persistence.
 - Export CSV (formula injection protected), download Markdown coaching brief and copy report.
 - Privacy disclosure, accessible controls and safe UI error messages that do not echo raw API URLs or credentials.
@@ -48,7 +48,7 @@ npm audit --audit-level=high
 - Current app sends observations to cloud only when generating cloud/hybrid inference; it does not upload them to Firestore.
 - Developer tokens shown in older screenshots should be revoked and replaced outside public view.
 
-See [security and QA checks](docs/QA_AND_SECURITY.md) and [honest three-minute demo storyboard](docs/DEMO_SCRIPT_3_MIN.md).
+See [security and QA checks](docs/QA_AND_SECURITY.md), [judge testing guide](docs/JUDGE_TESTING.md), [submission description draft](docs/DEVPOST_SUBMISSION_DRAFT.md) and [three-minute demo storyboard](docs/DEMO_SCRIPT_3_MIN.md).
 
 ## Submission gates
 
