@@ -69,8 +69,8 @@ test('form buttons, team and event type selectors, count and removal', async ({p
   await page.goto('/');
   await page.getByRole('textbox',{name:'Opponent team name'}).fill('East Ridge');
   await page.locator('.event-form').getByLabel('MIN',{exact:true}).fill('67');
-  await page.locator('.event-form').getByLabel('TEAM',{exact:true}).selectOption('Opponent');
-  await page.locator('.event-form').getByLabel('EVENT',{exact:true}).selectOption('Turnover');
+  await page.locator('.event-form').locator('.form-row select').nth(0).selectOption('Opponent');
+  await page.locator('.event-form').locator('.form-row select').nth(1).selectOption('Turnover');
   await page.getByPlaceholder('e.g. Left side exposed during transition...').fill('A new match observation.');
   await page.getByRole('button',{name:'Log observation'}).click();
   await expect(page.locator('.event')).toHaveCount(7);
