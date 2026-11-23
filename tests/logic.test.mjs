@@ -14,8 +14,9 @@ test('rejects invalid goals and empty observations', () => {
   assert.throws(() => buildPrompt(sampleEvents, 'Delete data'));
   assert.throws(() => buildPrompt([], 'Halftime briefing'));
 });
-test('bounds potentially abusive notes and normalizes the minute', () => {
-  const prompt = buildPrompt([{ minute: 100000, team: 'Us', type: 'Shot', note: 'x'.repeat(1000) }], 'Tactical adjustments');
+test('rejects out-of-range minutes and bounds potentially abusive notes', () => {
+  assert.throws(() => buildPrompt([{ minute: 100000, team: 'Us', type: 'Shot', note: 'x'.repeat(1000) }], 'Tactical adjustments'), /Invalid match observation/);
+  const prompt = buildPrompt([{ minute: 120, team: 'Us', type: 'Shot', note: 'x'.repeat(1000) }], 'Tactical adjustments');
   assert.match(prompt, /"minute":120/);
   assert.doesNotMatch(prompt, /x{241}/);
 });

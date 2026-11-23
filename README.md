@@ -2,7 +2,7 @@
 
 **Match observations → evidence-linked coaching decisions.** A football analysis workspace powered by Firebase AI Logic hybrid inference. The goal is to make useful tactical help available on compatible Chrome devices, with a Firebase cloud option when on-device inference is not available.
 
-> **Release status:** V0.2 is merged into `main` and deployed to Vercel. User screenshots demonstrate real Cloud, On-device and Hybrid → On-device inference in previously tested builds. A successful Cloud request on an earlier production build was reported. **Actual Hybrid → Cloud fallback and the precise newest release's AI behavior still require independent real-browser verification.** Do not claim universally offline operation.
+> **Release status:** V0.2 is merged into `main` and deployed to Vercel. User screenshots demonstrate real Cloud, On-device and Hybrid → On-device inference in previously tested builds. A successful Cloud request on an earlier production build was reported. **A real Hybrid → Cloud fallback on the public production site was verified by a headless Chromium GitHub Actions run (2026-11-23, run 45181931811); the newest release's local-device behavior still requires final Chrome desktop verification.** Do not claim universally offline operation.
 
 ## Live project
 
@@ -51,7 +51,7 @@ npm audit --audit-level=high
 ```
 
 - Unit tests cover observation validation, prompt boundaries, session schema, CSV injection and error redaction.
-- Chrome local and Cloud inference were demonstrated in user screenshots. **Hybrid → Cloud fallback still needs a genuine unsupported-browser test. Do not simulate a route.**
+- Chrome local and Cloud inference were demonstrated in user screenshots. **Real Hybrid → Cloud fallback was verified on the public HTTPS site in GitHub Actions run 45181931811**, where a Chromium browser without a local model requested Hybrid and the Firebase SDK reported CLOUD. This proof applies to the tested production deployment; retest after any inference-routing changes.
 - The previously vulnerable transitive `@grpc/grpc-js@1.9.16` has been overridden with the patched `1.13.6`, and the lockfile includes a verified registry integrity hash. CI must still validate the full dependency tree and the actual Firebase build. Don't use `npm audit fix --force` blindly.
 - Current app sends observations to cloud only when generating cloud/hybrid inference; it does not upload them to Firestore.
 - Developer tokens shown in older screenshots should be revoked and replaced outside public view.

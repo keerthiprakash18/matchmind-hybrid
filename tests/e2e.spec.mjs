@@ -107,3 +107,26 @@ test('judges can use the demo without registration, and start a blank match safe
   await expect(page.locator('.event')).toHaveCount(6);
   await expect(page.getByRole('textbox',{name:'Our team name'})).toHaveValue('Eastport FC');
 });
+
+
+test('cloud consent is revoked when the evidence changes', async ({ page }) => {
+  await page.goto('/');
+  const studio=page.locator('#ai-studio');
+  await studio.getByRole('button', { name: /^Cloud Remote model only$/i }).click();
+  const consent=studio.getByRole('checkbox', { name: /I understand that this analysis may use cloud inference/i });
+  await consent.check();
+  await expect(consent).toBeChecked();
+  await page.getByPlaceholder('e.g. Left side exposed during transition...').fill('An additional recovery was logged.');
+  await page.getByRole('button', { name: 'Log observation' }).click();
+  await expect(consent).not.toBeChecked();
+  await expect(studio.getByRole('button', { name: /Generate match intelligence/i })).toBeDisabled();
+});
+
+test('keyboard users can skip directly to the workspace', async ({ page }) => {
+  await page.goto('/');
+  await page.keyboard.press('Tab');
+  const link=page.getByRole('link', {name:'Skip to match workspace'});
+  await expect(link).toBeFocused();
+  await page.keyboard.press('Enter');
+  await expect(page).toHaveURL(/#main-content$/);
+});
