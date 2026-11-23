@@ -11,6 +11,7 @@ import { SESSION_KEY, validateSession, exportEventsCsv, exportBrief, eventDistri
 import { friendlyInferenceError } from './errors.mjs';
 import { inferenceLabel } from './inferenceSource.mjs';
 import { parseReportBlocks } from './reportFormat.mjs';
+import { analyzeEvidence } from './evidence.mjs';
 import './style.css';
 
 type Team = 'Us' | 'Opponent';
@@ -55,9 +56,13 @@ function App() {
   const [state, setState] = useState<'idle' | 'working' | 'done' | 'error'>('idle');
   const [error, setError] = useState('');
   const [progress, setProgress] = useState<number | null>(null);
+  const [durationMs, setDurationMs] = useState<number | null>(null);
+  const [requestedMode, setRequestedMode] = useState<Mode | null>(null);
   const stats = useMemo(() => summarize(events), [events]);
   const distribution = useMemo(() => eventDistribution(events), [events]);
   const topDistribution = Math.max(1,...distribution);
+  const evidence = useMemo(() => analyzeEvidence(output,events), [output,events]);
+  const lastLoggedMinute = events.length ? Math.max(...events.map(e=>e.minute)) : null;
   useEffect(() => {
     let active = true;
     (async () => {
@@ -78,7 +83,7 @@ function App() {
 
   const invalidateResult = () => {
     generationVersion.current += 1;
-    setOutput(''); setSource(''); setState('idle'); setError(''); setProgress(null);
+    setOutput(''); setSource(''); setState('idle'); setError(''); setProgress(null);setDurationMs(null);setRequestedMode(null);
   };
   const saveSession = () => {
     try {
@@ -135,6 +140,9 @@ function App() {
 
   const analyze = async () => {
     const version=++generationVersion.current;
+    const startedAt=performance.now();
+    const submittedMode=mode;
+    setRequestedMode(submittedMode);setDurationMs(null);
     setError('');setState('working');setOutput('');setSource('');setProgress(null);
     try {
       const prompt=buildPrompt(events,goal);
@@ -142,9 +150,11 @@ function App() {
         if(generationVersion.current===version)setProgress(Math.round(Math.min(1,Math.max(0,fraction))*100));
       });
       if(generationVersion.current!==version)return;
+      setDurationMs(performance.now()-startedAt);
       setOutput(result.text);setSource(result.source);setState('done');
     } catch(error) {
       if(generationVersion.current!==version)return;
+      setDurationMs(performance.now()-startedAt);
       setError(friendlyInferenceError(error));setState('error');
     }
   };
@@ -164,12 +174,12 @@ function App() {
       </aside>
 
       <main>
-        <header className="topbar"><div className="breadcrumb">Workspace <span>/</span> Match intelligence</div><div className="top-right"><span className="status-dot"/> Prototype workspace <span className="avatar">MM</span></div></header>
+        <header className="topbar"><a className="mobile-brand" href="#overview"><Activity size={17}/> MATCHMIND</a><div className="breadcrumb">Workspace <span>/</span> Match intelligence</div><div className="top-right"><span className="status-dot"/> Prototype workspace <span className="avatar">MM</span></div></header>
         <div className="content">
           <section className="hero" id="overview"><div className="eyebrow"><span className="eyebrow-line"/> THE NEW PLAYBOOK</div><div className="hero-row"><div><h1>Better decisions.<br/><em>Every match.</em></h1><p>Log what you see. Find the patterns that matter. Get tactical clarity with AI that prefers to run on your device.</p></div><div className="hero-badge"><span>01 / 03</span><strong>Observe.<br/>Understand.<br/>Adapt.</strong><span className="badge-bottom">BUILT FOR THE TOUCHLINE <ArrowRight size={15}/></span></div></div></section>
 
           <div className="section-label"><div><span className="label-index">01</span><h2>Match dashboard</h2></div><div className="tag">SYNTHETIC DEMO DATA</div></div>
-          <div className="match-card"><div className="match-meta"><span>FRIENDLY / DEMO MATCH</span><span>FIRST HALF · MINUTE 45</span></div><div className="match-line"><div><span className="team-monogram blue">E</span><input className="team-name-input" aria-label="Our team name" maxLength={42} value={home} onChange={e=>{setHome(e.target.value);invalidateResult();}}/></div><div className="vs">VS<span>NO SCORE TRACKED</span></div><div className="right-team"><span className="team-monogram ink">N</span><input className="team-name-input away-team-input" aria-label="Opponent team name" maxLength={42} value={away} onChange={e=>{setAway(e.target.value);invalidateResult();}}/></div></div><p className="match-notice"><ShieldCheck size={15}/> Example teams and events are fictional. Insights are based on recorded observations, not an actual match feed.</p></div>
+          <div className="match-card"><div className="match-meta"><span>FRIENDLY / DEMO MATCH</span><span>{lastLoggedMinute === null ? 'NO OBSERVATIONS YET' : 'LAST RECORDED EVENT · '+lastLoggedMinute+'′'}</span></div><div className="match-line"><div><span className="team-monogram blue">{home.trim().slice(0,1).toUpperCase()||'H'}</span><input className="team-name-input" aria-label="Our team name" maxLength={42} value={home} onChange={e=>{setHome(e.target.value);invalidateResult();}}/></div><div className="vs">VS<span>NO SCORE TRACKED</span></div><div className="right-team"><span className="team-monogram ink">{away.trim().slice(0,1).toUpperCase()||'A'}</span><input className="team-name-input away-team-input" aria-label="Opponent team name" maxLength={42} value={away} onChange={e=>{setAway(e.target.value);invalidateResult();}}/></div></div><p className="match-notice"><ShieldCheck size={15}/> Example teams and events are fictional. Insights are based on recorded observations, not an actual match feed.</p></div>
           <div className="stat-grid">{statDisplay.map(([key, label, Icon]) => <div className="stat-card" key={key}><span className="stat-top"><span>{label}</span><Icon size={18}/></span><strong>{stats[key]}</strong><span className="stat-foot">From {stats.logged} logged observations</span></div>)}</div>
 
 
@@ -211,7 +221,20 @@ function App() {
                 block.kind === 'heading'
                   ? <h3 key={index}>{renderEmphasis(block.text)}</h3>
                   : <p className={block.kind === 'bullet' ? 'report-bullet' : block.kind === 'numbered' ? 'report-numbered' : 'report-paragraph'} key={index}>{block.kind === 'bullet' ? '• ' : ''}{renderEmphasis(block.text)}</p>
-              )}</div><p>AI-generated guidance — verify with the full match context before acting.</p><div className="export-actions"><button onClick={downloadBrief}><Download size={15}/> Download briefing</button><button onClick={copyBrief}><Copy size={15}/> Copy briefing</button></div><span className="export-status" role="status">{exportStatus}</span></div>}
+              )}</div>
+                <div className="evidence-receipt" aria-label="Inference and evidence audit" role="region">
+                  <div className="evidence-receipt-title"><ShieldCheck size={16}/><strong>Inference & evidence receipt</strong></div>
+                  <div className="evidence-metrics">
+                    <div><small>REQUESTED</small><strong>{requestedMode === 'hybrid' ? 'Hybrid' : requestedMode === 'local' ? 'On-device' : 'Cloud'}</strong></div>
+                    <div><small>ACTUAL ROUTE</small><strong>{inferenceLabel(source)}</strong></div>
+                    <div><small>RESPONSE TIME</small><strong>{durationMs === null ? '—' : (durationMs/1000).toFixed(1)+'s'}</strong></div>
+                    <div><small>EVENTS CITED</small><strong>{evidence.linkedEventCount}/{evidence.loggedEventCount}</strong></div>
+                  </div>
+                  {requestedMode === 'hybrid' && (source === 'in_cloud' || source === 'IN_CLOUD') && <p className="fallback-verified"><CheckCircle2 size={15}/> Cloud response in Hybrid mode recorded. On-device availability and the reason for fallback require separate verification.</p>}
+                  {evidence.unloggedMinutes.length > 0 && <p className="evidence-warning">Review unlogged time references: {evidence.unloggedMinutes.map(n=>n+'′').join(', ')}. They might refer to an event not in your notebook.</p>}
+                  <p className="evidence-disclaimer">Timestamp matching only; it does not prove that the model's tactical statements are true. Review every recommendation.</p>
+                </div>
+                <p>AI-generated guidance — verify with the full match context before acting.</p><div className="export-actions"><button onClick={downloadBrief}><Download size={15}/> Download briefing</button><button onClick={copyBrief}><Copy size={15}/> Copy briefing</button></div><span className="export-status" role="status">{exportStatus}</span></div>}
               {state === 'idle' && <div className="result-placeholder"><div className="orb"><Sparkles size={23}/></div><h3>Your next insight starts here.</h3><p>Choose a focus, then analyze real observations using Firebase AI Logic. No mock AI response is shown.</p></div>}
             </section>
           </div>
@@ -219,6 +242,12 @@ function App() {
           <section className="architecture" id="how-it-works"><div><span className="overline">BUILT FOR HYBRID</span><h2>Intelligence that meets you <em>where you are.</em></h2><p>Local when supported. Cloud when needed. Clear about which one actually answered.</p></div><div className="architecture-flow"><div><Cpu size={22}/><strong>Gemini Nano 4</strong><span>On your Chrome desktop</span></div><ArrowRight className="flow-arrow" size={22}/><div><Activity size={22}/><strong>Firebase AI Logic</strong><span>Routes every request</span></div><ArrowRight className="flow-arrow" size={22}/><div><Cloud size={22}/><strong>Gemini Cloud</strong><span>Fallback when unavailable</span></div></div></section>
           <footer><span>© 2026 MATCHMIND · DEMONSTRATION PROTOTYPE</span><span><WifiOff size={15}/> Offline requires a supported on-device model <CircleHelp size={14}/></span></footer>
         </div>
+        <nav className="mobile-nav" aria-label="Mobile navigation">
+          <a href="#overview"><BarChart3 size={19}/><span>Overview</span></a>
+          <a href="#notebook"><FileText size={19}/><span>Notebook</span></a>
+          <a href="#ai-studio"><Sparkles size={19}/><span>AI studio</span></a>
+          <a href="#how-it-works"><Compass size={19}/><span>How it works</span></a>
+        </nav>
       </main>
     </div>
   );
