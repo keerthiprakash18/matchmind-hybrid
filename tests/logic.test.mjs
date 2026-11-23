@@ -20,3 +20,13 @@ test('rejects out-of-range minutes and bounds potentially abusive notes', () => 
   assert.match(prompt, /"minute":120/);
   assert.doesNotMatch(prompt, /x{241}/);
 });
+
+test('the coaching prompt asks both inference providers for one reliable report format', () => {
+  const prompt=buildPrompt(sampleEvents,'Halftime briefing');
+  for (const heading of ['Overview:', 'Insights:', 'Coaching adjustments:', 'Limitations:']) {
+    assert.ok(prompt.includes(heading), 'Missing stable heading: '+heading);
+  }
+  assert.match(prompt,/Do not use \(1\), \(2\), \(3\), \(4\) labels/);
+  assert.match(prompt,/Never invent match scores/);
+  assert.match(prompt,/exactly 2/i);
+});

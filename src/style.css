@@ -269,3 +269,73 @@ html{scroll-padding-top:20px}
 /* Surface every evidence-backed signal instead of arbitrarily truncating the list. */
 @media(min-width:1201px){.signal-grid{grid-template-columns:repeat(4,minmax(0,1fr))}}
 @media(min-width:601px) and (max-width:1200px){.signal-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+
+/* Model-agnostic tactical report: one polished layout for real Chrome Nano and Cloud text. */
+.report-introduction{margin:20px 0 0;padding:5px 3px 0}
+.report-introduction>span{display:inline-flex;align-items:center;letter-spacing:1.45px;font-size:9px;font-weight:900;color:#4a68ab}
+.report-introduction h3{font:600 23px/1.2 'Fraunces',Georgia,serif;color:#17386d;letter-spacing:-.6px;margin:7px 0 4px}
+.ai-result .report-introduction p{font-size:11px;line-height:1.65;color:#52668c;margin:8px 0 0;border:0;padding:0}
+.formatted-report{display:grid;gap:12px;margin-top:18px;white-space:normal}
+.report-section{background:#fff;border:1px solid #d9e3f6;border-radius:13px;
+  padding:16px 17px;min-width:0;box-shadow:0 3px 14px rgba(22,54,117,.025)}
+.report-section-heading{display:flex;align-items:center;gap:10px;min-height:25px;margin-bottom:10px}
+.report-section-index{font-size:10px;font-weight:900;letter-spacing:1px;color:#3763c1;
+  background:#eaf1ff;border-radius:6px;padding:5px 7px;flex:0 0 auto}
+.formatted-report .report-section-heading h3{margin:0;color:#203e73;
+  font-size:14px;line-height:1.45;font-family:'DM Sans',Arial,sans-serif;font-weight:800;letter-spacing:-.2px}
+.report-section-content{display:grid;gap:9px;min-width:0}
+.ai-result .report-section-content p{margin:0;padding:0;border:0;color:#2d4269;
+  font-size:12px;line-height:1.85;overflow-wrap:anywhere}
+.report-section-content h4{font-size:12px;font-weight:800;color:#20447f;margin:3px 0;line-height:1.5}
+.report-section-content .report-list{display:grid;gap:9px;margin:0;padding-left:22px;
+  color:#2d4269;line-height:1.8;font-size:12px;overflow-wrap:anywhere}
+.report-section-content ul.report-list{list-style:disc}
+.report-section-content .report-list li{padding-left:3px}
+.report-section-content .report-list li::marker{color:#3766df;font-weight:800}
+.report-section-content strong{color:#1b448e;font-weight:800}
+.report-section.section-adjustments{border-color:#cde8de;background:#fafffd}
+.report-section.section-adjustments .report-section-index{color:#18765b;background:#e3f7ee}
+.report-section.section-adjustments .report-list li::marker{color:#1d9970}
+.report-section.section-limitations{border-color:#f0dfbd;background:#fffcf6}
+.report-section.section-limitations .report-section-index{color:#946a20;background:#fff0cb}
+.report-section.section-analysis{border-color:#e3e7ef}
+@media (max-width:570px){
+  .report-introduction h3{font-size:21px}
+  .report-section{padding:14px 13px;border-radius:11px}
+  .report-section-heading{gap:8px}
+  .report-section-content .report-list{font-size:13px;line-height:1.75}
+  .ai-result .report-section-content p{font-size:13px;line-height:1.8}
+  .formatted-report .report-section-heading h3{font-size:13px}
+}
+@media (prefers-reduced-motion:reduce){
+  .report-section{transition:none}
+}
+
+
+/* Trustworthy route comparison — only SDK-sourced metadata, never fabricated model output. */
+.route-comparison{margin-top:17px;padding:17px;background:#fff;border:1px solid #dae3f2;border-radius:13px}
+.route-comparison-heading{display:flex;gap:12px;justify-content:space-between;align-items:center;margin-bottom:13px}
+.route-comparison-heading>div>span{font-size:9px;letter-spacing:1px;font-weight:900;color:#506ba5}
+.route-comparison-heading h3{margin:5px 0 0;font-size:14px;font-weight:900;color:#243a65;line-height:1.4}
+.route-comparison-count{font-size:9px;font-weight:900;white-space:nowrap;color:#3e60a6;
+  background:#edf3ff;border-radius:999px;padding:7px 9px}
+.route-comparison-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.route-compare-card{min-width:0;padding:12px 10px;border:1px solid #e2e9f6;
+  border-radius:9px;background:#f8faff;display:grid;gap:5px}
+.route-compare-card .route-compare-overline{font-size:9px;letter-spacing:.4px;
+  font-weight:900;color:#607091;overflow-wrap:anywhere}
+.route-compare-card strong{font-size:11px;font-weight:900;color:#1c4fb1;overflow-wrap:anywhere}
+.route-compare-card>span:not(.route-compare-overline),.route-compare-card small{
+  font-size:10px;color:#536782}
+.route-comparison>p{font-size:10px;line-height:1.65;color:#63718a;margin:12px 0 0}
+@media(max-width:650px){
+  .route-comparison{padding:14px 12px}
+  .route-comparison-grid{grid-template-columns:1fr}
+  .route-compare-card{grid-template-columns:1fr auto;align-items:center;gap:4px 12px}
+  .route-compare-card .route-compare-overline{grid-column:1/-1}
+  .route-compare-card strong{font-size:13px}
+  .route-compare-card>span:not(.route-compare-overline){text-align:right}
+  .route-compare-card small{grid-column:1/-1}
+  .route-comparison>p{font-size:11px}
+}

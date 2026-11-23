@@ -20,6 +20,11 @@ test('production Hybrid falls back to Cloud on browser without a local model', a
   const receipt=studio.locator('.evidence-receipt');
   await expect(receipt).toContainText('Hybrid');
   await expect(receipt.locator('.evidence-metrics')).toContainText('CLOUD');
-  await page.screenshot({path:'hybrid-cloud-fallback-real-run.png',fullPage:false});
-  console.log('Verified: requested Hybrid; browser had no local model; Firebase SDK returned actual CLOUD.');
+  // Real model response, not a mocked UI: the same model-agnostic presentation
+  // must exist for Cloud output, while route data is sourced from the SDK.
+  await expect(studio.locator('.report-introduction')).toContainText('Halftime briefing');
+  await expect(studio.locator('.report-section').first()).toBeVisible();
+  await expect(studio.locator('.route-comparison')).toContainText('CLOUD');
+  await page.screenshot({path:'hybrid-cloud-fallback-real-run.png',fullPage:true});
+  console.log('Verified: requested Hybrid; browser had no local model; Firebase SDK returned actual CLOUD; formatted real report and route comparison rendered.');
 });
