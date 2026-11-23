@@ -8,3 +8,8 @@ dist/
 coverage/
 
 *.tsbuildinfo
+.matchmind-backups/
+*.bak-before-model-fix
+*.pem
+*.p12
+*.key
