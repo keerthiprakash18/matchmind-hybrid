@@ -46,6 +46,7 @@ function App() {
   const [away, setAway] = useState('Northbridge');
   const [sessionStatus, setSessionStatus] = useState('Demo session · Not saved');
   const [deviceStatus, setDeviceStatus] = useState('Checking browser support…');
+  const [privacyAcknowledged, setPrivacyAcknowledged] = useState(false);
   const [exportStatus, setExportStatus] = useState('');
   const generationVersion = useRef(0);
   const [newEvent, setNewEvent] = useState(defaults);
@@ -70,7 +71,7 @@ function App() {
         const api=(globalThis as typeof globalThis & {LanguageModel?: {availability:()=>Promise<string>}}).LanguageModel;
         const status=api && typeof api.availability==='function' ? await api.availability() : 'unavailable';
         if (!active) return;
-        setDeviceStatus(status==='available' ? 'Local model available (inference not yet verified)' :
+        setDeviceStatus(status==='available' ? 'Chrome local model available' :
           status==='downloadable' ? 'Local model can be downloaded' :
           status==='downloading' ? 'Local model downloading' :
           'On-device model unavailable in this browser');
@@ -139,6 +140,11 @@ function App() {
   };
 
   const analyze = async () => {
+    if (mode !== 'local' && !privacyAcknowledged) {
+      setError('Confirm that you understand cloud inference may transmit these observations before generating a report.');
+      setState('error');
+      return;
+    }
     const version=++generationVersion.current;
     const startedAt=performance.now();
     const submittedMode=mode;
@@ -214,7 +220,16 @@ function App() {
               </div>
               <div className="device-readiness"><Cpu size={15}/><span>{deviceStatus}</span></div>
               <div className="focus-box"><label htmlFor="goal">WHAT DO YOU NEED?</label><select id="goal" value={goal} onChange={(e)=>{setGoal(e.target.value as Goal);invalidateResult();}}><option>Halftime briefing</option><option>Tactical adjustments</option><option>Training priorities</option></select><p>AI grounds its recommendations in your logged events. It may be wrong; a coach makes the final decision.</p></div>
-              <button className="button-main" onClick={analyze} disabled={state==='working'||!events.length}><Sparkles size={18}/>{state === 'working' ? 'Analyzing observations…' : 'Generate match intelligence'}<ArrowRight size={18}/></button>
+              <div className="cloud-privacy" role="note">
+                <LockKeyhole size={17} aria-hidden="true"/>
+                <div><strong>Know where your notes go</strong>
+                  <p>{mode === 'local' ? 'On-device only: the SDK will not choose a cloud model for this request. An installed compatible device model is required.' :
+                    mode === 'hybrid' ? 'Hybrid: this request can send your logged notes to Firebase AI Logic and Gemini Cloud if on-device inference is unavailable. Do not enter real player identifiers.' :
+                    'Cloud: your logged notes are sent to Firebase AI Logic and Gemini Cloud for analysis. Do not enter real player identifiers.'}</p>
+                  {mode !== 'local' && <label className="privacy-confirm"><input type="checkbox" checked={privacyAcknowledged} onChange={e=>setPrivacyAcknowledged(e.target.checked)}/><span>I understand that this analysis may use cloud inference.</span></label>}
+                </div>
+              </div>
+              <button className="button-main" onClick={analyze} disabled={state==='working'||!events.length||(mode!=='local'&&!privacyAcknowledged)}><Sparkles size={18}/>{state === 'working' ? 'Analyzing observations…' : 'Generate match intelligence'}<ArrowRight size={18}/></button>
               {progress !== null && state === 'working' && mode !== 'cloud' && <p className="download-progress">On-device model download: {progress}% (cloud may be used while downloading)</p>}
               {state === 'error' && <div className="error" role="alert">{error}</div>}
               {state === 'done' && <div className="ai-result"><div className="result-heading"><strong><CheckCircle2 size={17}/> Analysis generated</strong><span className="source-pill">{inferenceLabel(source)}</span></div><div className="result-body formatted-report">{parseReportBlocks(output).map((block, index) =>
