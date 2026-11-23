@@ -1,0 +1,74 @@
+name: MatchMind independent read-only audit
+
+on:
+  push:
+    branches: [feat/independent-audit-20261123]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  local-security-ux:
+    name: Local source and non-destructive browser audit
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - run: npm install --no-save --package-lock=false @playwright/test@1.56.1 @axe-core/playwright@4.10.2
+      - run: npx playwright install --with-deps chromium
+      - name: Start source in isolated Vite environment
+        shell: bash
+        run: |
+          npm run dev -- --port 4173 > /tmp/matchmind-audit.log 2>&1 &
+          for i in $(seq 1 40); do
+            if curl --silent --fail http://127.0.0.1:4173/ > /dev/null; then exit 0; fi
+            sleep 1
+          done
+          cat /tmp/matchmind-audit.log
+          exit 1
+      - name: Run browser audit against local app (no model requests)
+        run: npx playwright test tests/independent-audit.spec.mjs --workers=2 --reporter=line
+        env:
+          BASE_URL: http://127.0.0.1:4173
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: independent-audit-local-visuals
+          path: artifacts/audit/local-*.png
+          if-no-files-found: ignore
+          retention-days: 7
+
+  public-production:
+    name: Read-only deployed HTTPS browser audit
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - run: npm install --no-save --package-lock=false @playwright/test@1.56.1 @axe-core/playwright@4.10.2
+      - run: npx playwright install --with-deps chromium
+      - name: Audit published site without Gemini requests or credentials
+        run: npx playwright test tests/independent-audit.spec.mjs --workers=2 --reporter=line
+        env:
+          BASE_URL: https://matchmind-hybrid.vercel.app
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: independent-audit-public-visuals
+          path: artifacts/audit/prod-*.png
+          if-no-files-found: ignore
+          retention-days: 7
