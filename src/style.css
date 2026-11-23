@@ -77,3 +77,14 @@ button:not(:disabled):active{transform:scale(.99)}
   .top-right .avatar{display:none}
   #overview,#notebook,#ai-studio,#how-it-works{scroll-margin-top:18px}
 }
+
+
+/* Deliberate privacy gate: explicit cloud transfer awareness before inference. */
+.cloud-privacy{margin:15px 0 14px;padding:14px;display:flex;align-items:flex-start;gap:11px;background:#f7f9fe;border:1px solid #dce4f5;border-radius:11px}
+.cloud-privacy>svg{color:#2258df;flex-shrink:0;margin-top:2px}
+.cloud-privacy strong{font-size:12px;color:#243956}
+.cloud-privacy p{font-size:11px;line-height:1.65;margin:6px 0 0;color:#586982}
+.privacy-confirm{display:flex;align-items:flex-start;gap:9px;margin-top:13px;padding:9px 0;cursor:pointer;font-weight:650;color:#243956;font-size:11px;line-height:1.5}
+.privacy-confirm input{margin-top:1px;accent-color:#2257ed;width:18px;height:18px;flex-shrink:0}
+.privacy-confirm span{flex:1}
+@media(max-width:570px){.cloud-privacy{margin:12px 0;padding:13px}.privacy-confirm{font-size:11px}}
