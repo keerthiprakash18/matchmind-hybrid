@@ -1,0 +1,54 @@
+name: MatchMind quality gates
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  test-build:
+    name: Tests, typecheck and production build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Install pinned dependency tree
+        run: npm ci
+      - name: Reject committed environment or credential files
+        shell: bash
+        run: |
+          if git ls-files | grep -Ei '(^|/)(\.env(\.[^/]+)?|[^/]*\.(pem|p12|key)|service-account[^/]*\.json)$' | grep -vE '(^|/)\.env\.example$'; then
+            echo "::error::Potential secret/configuration file is tracked by Git."
+            exit 1
+          fi
+      - name: Run automated tests
+        run: npm test
+      - name: Typecheck and build
+        run: npm run build
+
+  dependency-audit:
+    name: Block high-severity dependency advisories
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Install locked dependency tree
+        run: npm ci
+      - name: Production dependency audit
+        run: npm audit --omit=dev --audit-level=high
