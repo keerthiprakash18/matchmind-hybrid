@@ -84,8 +84,11 @@ function App() {
   const ready = isFirebaseConfigured();
 
 
-  const invalidateResult = () => {
+  const invalidateResult = (revokeCloudConsent = true) => {
     generationVersion.current += 1;
+    // Consent is specific to the observations in the current request.
+    // Editing or replacing notes must require a fresh explicit acknowledgement.
+    if (revokeCloudConsent) setPrivacyAcknowledged(false);
     setOutput(''); setSource(''); setState('idle'); setError(''); setProgress(null);setDurationMs(null);setRequestedMode(null);
   };
   const saveSession = () => {
@@ -273,9 +276,9 @@ function App() {
             <section className="panel ai-panel" id="ai-studio"><div className="panel-title"><div><span className="overline blue-text">THE INTELLIGENCE</span><h2>Hybrid AI studio <Sparkles size={21}/></h2><p>Turn raw observations into coaching decisions.</p></div></div>
               <div className="mode-header"><strong>INFERENCE ENGINE</strong><span className={ready ? 'ready-badge' : 'not-ready-badge'}>{ready ? 'CONFIGURATION PRESENT' : 'SETUP REQUIRED'}</span></div>
               <div className="mode-grid" role="group" aria-label="AI inference preference">
-                <button aria-pressed={mode==='hybrid'} className={'mode '+(mode==='hybrid'?'selected':'')} onClick={()=>{setMode('hybrid');invalidateResult();}}><Zap size={19}/><strong>Hybrid</strong><small>Device first, cloud fallback</small></button>
-                <button aria-pressed={mode==='local'} className={'mode '+(mode==='local'?'selected':'')} onClick={()=>{setMode('local');invalidateResult();}}><Cpu size={19}/><strong>On-device</strong><small>Local model only</small></button>
-                <button aria-pressed={mode==='cloud'} className={'mode '+(mode==='cloud'?'selected':'')} onClick={()=>{setMode('cloud');invalidateResult();}}><Cloud size={19}/><strong>Cloud</strong><small>Remote model only</small></button>
+                <button aria-pressed={mode==='hybrid'} className={'mode '+(mode==='hybrid'?'selected':'')} onClick={()=>{setMode('hybrid');invalidateResult(false);}}><Zap size={19}/><strong>Hybrid</strong><small>Device first, cloud fallback</small></button>
+                <button aria-pressed={mode==='local'} className={'mode '+(mode==='local'?'selected':'')} onClick={()=>{setMode('local');invalidateResult(false);}}><Cpu size={19}/><strong>On-device</strong><small>Local model only</small></button>
+                <button aria-pressed={mode==='cloud'} className={'mode '+(mode==='cloud'?'selected':'')} onClick={()=>{setMode('cloud');invalidateResult(false);}}><Cloud size={19}/><strong>Cloud</strong><small>Remote model only</small></button>
               </div>
               <div className="device-readiness" role="status" aria-live="polite"><Cpu size={15}/><span>{deviceStatus}. Browser support is advisory; verify the actual inference route below.</span></div>
               <div className="focus-box"><label htmlFor="goal">WHAT DO YOU NEED?</label><select id="goal" value={goal} onChange={(e)=>{setGoal(e.target.value as Goal);invalidateResult();}}><option>Halftime briefing</option><option>Tactical adjustments</option><option>Training priorities</option></select><p>AI suggestions use only logged observations. The model may still be wrong; the coach makes the final decision.</p></div>
@@ -306,6 +309,7 @@ function App() {
                     <div><small>EVENTS CITED</small><strong>{evidence.linkedEventCount}/{evidence.loggedEventCount}</strong></div>
                   </div>
                   {requestedMode === 'hybrid' && (source === 'in_cloud' || source === 'IN_CLOUD') && <p className="fallback-verified"><CheckCircle2 size={15}/> Cloud response in Hybrid mode recorded. On-device availability and the reason for fallback require separate verification.</p>}
+                  {evidence.citedMinutes.length === 0 && <p className="evidence-warning">This response contains no recognized logged timestamps. Review all recommendations against your notebook.</p>}
                   {evidence.unloggedMinutes.length > 0 && <p className="evidence-warning">Review unlogged time references: {evidence.unloggedMinutes.map(n=>n+'′').join(', ')}. They might refer to an event not in your notebook.</p>}
                   <p className="evidence-disclaimer">Timestamp matching only; it does not prove that the model's tactical statements are true. Review every recommendation.</p>
                 </div>
