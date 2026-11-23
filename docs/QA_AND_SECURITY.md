@@ -9,8 +9,8 @@
 - GitHub Actions CI run **45146854933** passed unit tests (including session validation, CSV formula escaping, evidence timestamp matching and error redaction), TypeScript/Vite production build, npm dependency audit, desktop/mobile Chromium smoke and WCAG 2.1 AA automated scans. These are not substitutes for real-world manual testing.
 - On-device source was observed on Chrome desktop. **Offline network-disconnected inference has not yet been verified.** Test it separately before making offline claims.
 - Verify cloud inference separately and prove hybrid fallback when model is unsupported.
-- Test 1-50 events, empty/invalid notes, restore session and clear confirmation, download CSV/brief, no stale AI result after edits.
-- Audit dependency CVEs. Current branch overrides vulnerable `@grpc/grpc-js@1.9.16` with patched `1.13.6`, and uses a registry-sourced SHA-512 integrity in `package-lock.json`. **Pending: rerun strict npm audit and confirm npm ci + Firebase build success in CI.** Never suppress failures or use `npm audit fix --force` (it can break Firebase hybrid SDK).
+- Test 1-50 events, empty/invalid notes, restore session and clear confirmation, download CSV/brief, no stale AI result after edits. Confirm Cloud/Hybrid cannot send observations without explicit browser-session consent; On-device should not require cloud consent.
+- Audit dependency CVEs. Current branch overrides vulnerable `@grpc/grpc-js@1.9.16` with patched `1.13.6`, and uses a registry-sourced SHA-512 integrity in `package-lock.json`. Strict npm audit, npm ci and TypeScript/Vite production build passed on PR CI 45149336690; rerun on the final PR commit before release. Never suppress failures or use `npm audit fix --force` (it can break Firebase hybrid SDK).
 - Verify production `VITE_ENABLE_APP_CHECK_DEBUG=false`. Previously exposed debug tokens in screenshots should be revoked. Keep them out of any versioned source or public demo.
 - Firebase env vars in Vercel must be set in the platform dashboard, not in GitHub; `.env` must remain untracked.
 - App Check protects API usage but does not replace anti-abuse, quotas or ownership validation for future stored accounts.
