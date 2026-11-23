@@ -7,6 +7,7 @@
 ## Features
 - Editable fictional fixture labels, synthetic match-event demo and precise event-based statistics.
 - Manual observation timeline, truthful last-recorded minute, event distribution and bounded 50-event notebook.
+- **Evidence-led coaching signals** computed deterministically from logged event types and minutes, independent of generative AI, with explicit non-predictive labeling.
 - AI focus modes: halftime briefing, tactical adjustments and training priorities.
 - AI inference: **Hybrid**, **On-device only**, **Cloud only** using Firebase AI Logic.
 - SDK-provided inference provenance badge with an **Inference & evidence receipt**: requested mode, actual route, elapsed time, timestamp coverage and unlogged timestamp warning. This is not a guarantee that AI reasoning is accurate.
