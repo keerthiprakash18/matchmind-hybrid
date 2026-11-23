@@ -107,6 +107,29 @@ function App() {
       setSessionStatus('Saved session restored');
     } catch {setSessionStatus('Saved session invalid — current events preserved');}
   };
+  const exploreDemo = () => {
+    document.getElementById('ai-studio')?.scrollIntoView({behavior:'smooth',block:'start'});
+  };
+  const startBlankMatch = () => {
+    if (!window.confirm('Start a blank match? Unsaved observations in this tab will be replaced. Your saved tab session can still be restored.')) return;
+    setHome('Our team');
+    setAway('Opposition');
+    setEvents([]);
+    setNewEvent({...defaults});
+    invalidateResult();
+    setSessionStatus('Blank match · Ready to log');
+    document.getElementById('notebook')?.scrollIntoView({behavior:'smooth',block:'start'});
+  };
+  const loadSampleMatch = () => {
+    if (!window.confirm('Load the fictional demo match? Your current unsaved observations will be replaced. Your saved tab session will remain available.')) return;
+    setHome('Eastport FC');
+    setAway('Northbridge');
+    setEvents(sampleEvents.map(e=>({...e})));
+    setNewEvent({...defaults});
+    invalidateResult();
+    setSessionStatus('Fictional demo restored · Not saved');
+    document.getElementById('notebook')?.scrollIntoView({behavior:'smooth',block:'start'});
+  };
   const clearSession = () => {
     if(!window.confirm('Clear match notes and the saved tab session? This cannot be undone.'))return;
     sessionStorage.removeItem(SESSION_KEY);setEvents([]);invalidateResult();
@@ -184,7 +207,13 @@ function App() {
       <main>
         <header className="topbar"><a className="mobile-brand" href="#overview"><Activity size={17}/> MATCHMIND</a><div className="breadcrumb">Workspace <span>/</span> Match intelligence</div><div className="top-right"><span className="status-dot"/> Prototype workspace <span className="avatar">MM</span></div></header>
         <div className="content">
-          <section className="hero" id="overview"><div className="eyebrow"><span className="eyebrow-line"/> THE NEW PLAYBOOK</div><div className="hero-row"><div><h1>Better decisions.<br/><em>Every match.</em></h1><p>Log what you see. Find the patterns that matter. Get tactical clarity with AI that prefers to run on your device.</p></div><div className="hero-badge"><span>01 / 03</span><strong>Observe.<br/>Understand.<br/>Adapt.</strong><span className="badge-bottom">BUILT FOR THE TOUCHLINE <ArrowRight size={15}/></span></div></div></section>
+          <section className="hero" id="overview"><div className="eyebrow"><span className="eyebrow-line"/> THE NEW PLAYBOOK</div><div className="hero-row"><div><h1>Better decisions.<br/><em>Every match.</em></h1><p>Log what you see. Find the patterns that matter. Get tactical clarity with AI that prefers to run on your device.</p>
+            <div className="hero-actions">
+              <button type="button" className="hero-primary" onClick={exploreDemo}>Explore the demo <ArrowRight size={17}/></button>
+              <button type="button" className="hero-secondary" onClick={startBlankMatch}>Start blank match</button>
+            </div>
+            <span className="hero-no-login"><ShieldCheck size={15}/> No login required · Fictional data ready to try</span>
+          </div><div className="hero-badge"><span>01 / 03</span><strong>Observe.<br/>Understand.<br/>Adapt.</strong><span className="badge-bottom">BUILT FOR THE TOUCHLINE <ArrowRight size={15}/></span></div></div></section>
 
           <div className="section-label"><div><span className="label-index">01</span><h2>Match dashboard</h2></div><div className="tag">SYNTHETIC DEMO DATA</div></div>
           <div className="match-card"><div className="match-meta"><span>FRIENDLY / DEMO MATCH</span><span>{lastLoggedMinute === null ? 'NO OBSERVATIONS YET' : 'LAST RECORDED EVENT · '+lastLoggedMinute+'′'}</span></div><div className="match-line"><div><span className="team-monogram blue">{home.trim().slice(0,1).toUpperCase()||'H'}</span><input className="team-name-input" aria-label="Our team name" maxLength={42} value={home} onChange={e=>{setHome(e.target.value);invalidateResult();}}/></div><div className="vs">VS<span>NO SCORE TRACKED</span></div><div className="right-team"><span className="team-monogram ink">{away.trim().slice(0,1).toUpperCase()||'A'}</span><input className="team-name-input away-team-input" aria-label="Opponent team name" maxLength={42} value={away} onChange={e=>{setAway(e.target.value);invalidateResult();}}/></div></div><p className="match-notice"><ShieldCheck size={15}/> Example teams and events are fictional. Insights are based on recorded observations, not an actual match feed.</p></div>
@@ -196,6 +225,7 @@ function App() {
             <div className="ops-buttons">
               <button type="button" onClick={saveSession}><Save size={15}/> Save session</button>
               <button type="button" onClick={restoreSession}><RotateCw size={15}/> Restore</button>
+              <button type="button" onClick={loadSampleMatch}><Sparkles size={15}/> Load demo match</button>
               <button type="button" onClick={downloadCsv} disabled={!events.length}><Download size={15}/> Export CSV</button>
               <button type="button" className="danger-button" onClick={clearSession}><Trash2 size={15}/> Clear notes</button>
             </div>
