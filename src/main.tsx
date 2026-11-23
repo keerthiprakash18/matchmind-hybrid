@@ -3,11 +3,12 @@ import { createRoot } from 'react-dom/client';
 import {
   Activity, ArrowDownRight, ArrowRight, BarChart3, CheckCircle2, CircleHelp,
   Cloud, Compass, Cpu, FileText, LockKeyhole, Plus, RotateCcw,
-  ShieldCheck, Sparkles, Target, Trash2, WifiOff, Zap, Download, Save, RotateCw, Copy
+  ShieldCheck, Sparkles, Target, Trash2, WifiOff, Zap, Download, Save, RotateCw, Copy, Pencil, Search, Upload, Undo2, X
 } from 'lucide-react';
 import { generateAnalysis, isFirebaseConfigured } from './firebaseAI';
 import { buildPrompt, EVENT_TYPES, sampleEvents, summarize } from './logic.mjs';
-import { SESSION_KEY, validateSession, exportEventsCsv, exportBrief, eventDistribution } from './session.mjs';
+import { SESSION_KEY, validateSession, exportEventsCsv, exportBrief, eventDistribution, exportSessionJson, importSessionJson, MAX_SESSION_FILE_BYTES } from './session.mjs';
+import { filterObservations } from './notebook.mjs';
 import { friendlyInferenceError } from './errors.mjs';
 import { inferenceLabel } from './inferenceSource.mjs';
 import { parseReportBlocks } from './reportFormat.mjs';
@@ -17,6 +18,7 @@ import './style.css';
 
 type Team = 'Us' | 'Opponent';
 type GameEvent = { id: string; minute: number; team: Team; type: string; note: string };
+type EventDraft = Omit<GameEvent, 'id'>;
 type Mode = 'hybrid' | 'local' | 'cloud';
 type Goal = 'Halftime briefing' | 'Tactical adjustments' | 'Training priorities';
 
@@ -51,6 +53,13 @@ function App() {
   const [exportStatus, setExportStatus] = useState('');
   const generationVersion = useRef(0);
   const [newEvent, setNewEvent] = useState(defaults);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [teamFilter, setTeamFilter] = useState<'All' | Team>('All');
+  const [typeFilter, setTypeFilter] = useState('All');
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editDraft, setEditDraft] = useState<EventDraft | null>(null);
+  const [lastDeleted, setLastDeleted] = useState<GameEvent | null>(null);
+  const importInputRef = useRef<HTMLInputElement>(null);
   const [mode, setMode] = useState<Mode>('hybrid');
   const [goal, setGoal] = useState<Goal>('Halftime briefing');
   const [output, setOutput] = useState('');
@@ -60,6 +69,7 @@ function App() {
   const [progress, setProgress] = useState<number | null>(null);
   const [durationMs, setDurationMs] = useState<number | null>(null);
   const [requestedMode, setRequestedMode] = useState<Mode | null>(null);
+  const visibleEvents = useMemo(() => filterObservations(events, {search:searchQuery, team:teamFilter, type:typeFilter}) as GameEvent[], [events, searchQuery, teamFilter, typeFilter]);
   const stats = useMemo(() => summarize(events), [events]);
   const distribution = useMemo(() => eventDistribution(events), [events]);
   const topDistribution = Math.max(1,...distribution);
@@ -106,7 +116,7 @@ function App() {
       if(!saved){setSessionStatus('No saved session found in this tab');return;}
       const session=validateSession(JSON.parse(saved));
       setHome(session.home);setAway(session.away);
-      setEvents(session.events as GameEvent[]);invalidateResult();
+      setEvents(session.events as GameEvent[]);setLastDeleted(null);setEditingId(null);setEditDraft(null);invalidateResult();
       setSessionStatus('Saved session restored');
     } catch {setSessionStatus('Saved session invalid — current events preserved');}
   };
@@ -119,6 +129,7 @@ function App() {
     setHome('Our team');
     setAway('Opposition');
     setEvents([]);
+    setLastDeleted(null);setEditingId(null);setEditDraft(null);
     setNewEvent({...defaults});
     invalidateResult();
     setSessionStatus('Blank match · Ready to log');
@@ -129,6 +140,7 @@ function App() {
     setHome('Eastport FC');
     setAway('Northbridge');
     setEvents(initialEvents.map(e=>({...e})));
+    setLastDeleted(null);setEditingId(null);setEditDraft(null);
     setNewEvent({...defaults});
     invalidateResult();
     setSessionStatus('Fictional demo restored · Not saved');
@@ -136,7 +148,7 @@ function App() {
   };
   const clearSession = () => {
     if(!window.confirm('Clear match notes and the saved tab session? This cannot be undone.'))return;
-    sessionStorage.removeItem(SESSION_KEY);setEvents([]);invalidateResult();
+    sessionStorage.removeItem(SESSION_KEY);setEvents([]);setLastDeleted(null);setEditingId(null);setEditDraft(null);invalidateResult();
     setSessionStatus('Notes and saved session cleared');
   };
   const downloadText = (filename:string,body:string,mime:string) => {
@@ -146,6 +158,62 @@ function App() {
     window.setTimeout(()=>URL.revokeObjectURL(url),1500);
   };
   const coachingBrief=()=>exportBrief({home,away,events,goal,output,source});
+  const downloadSession = () => {
+    try {
+      const json=exportSessionJson({schemaVersion:2,home,away,events});
+      downloadText('matchmind-session.json',json,'application/json;charset=utf-8');
+      setSessionStatus('Session JSON downloaded to your device · No cloud upload');
+    } catch {setSessionStatus('Could not export session. Check your match notes.');}
+  };
+  const importSession = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const input=e.currentTarget;
+    const file=input.files?.[0];
+    if (!file) return;
+    try {
+      if (file.size > MAX_SESSION_FILE_BYTES) throw new Error('File too large');
+      const session=importSessionJson(await file.text());
+      if (!window.confirm('Replace current unsaved notes with the imported session? Saved tab data will remain unchanged.')) return;
+      setHome(session.home);setAway(session.away);setEvents(session.events as GameEvent[]);
+      setEditingId(null);setEditDraft(null);setLastDeleted(null);
+      invalidateResult();
+      setSessionStatus('Imported '+session.events.length+' validated observations · No upload');
+    } catch {
+      setSessionStatus('Import rejected: invalid or oversized MatchMind session JSON. Your notes are unchanged.');
+    } finally {
+      input.value='';
+    }
+  };
+  const validDraft = (draft:EventDraft) =>
+    Number.isInteger(draft.minute) && draft.minute >= 0 && draft.minute <= 120 &&
+    (draft.team === 'Us' || draft.team === 'Opponent') &&
+    EVENT_TYPES.includes(draft.type) && Boolean(draft.note.trim());
+  const editObservation = (event:GameEvent) => {
+    setEditingId(event.id);
+    setEditDraft({minute:event.minute,team:event.team,type:event.type,note:event.note});
+  };
+  const saveObservationEdit = () => {
+    if (!editingId || !editDraft || !validDraft(editDraft)) {
+      setSessionStatus('Could not update: enter a whole minute from 0–120, valid event and description.');
+      return;
+    }
+    const updated:GameEvent = {id:editingId,minute:editDraft.minute,team:editDraft.team,type:editDraft.type,note:editDraft.note.trim().slice(0,240)};
+    setEvents(prev=>prev.map(event=>event.id===editingId?updated:event).sort((a,b)=>a.minute-b.minute));
+    setEditingId(null);setEditDraft(null);setLastDeleted(null);
+    invalidateResult();
+    setSessionStatus('Observation corrected · Previous AI output cleared');
+  };
+  const deleteObservation = (event:GameEvent) => {
+    setEvents(prev=>prev.filter(item=>item.id!==event.id));
+    setLastDeleted(event);setEditingId(null);setEditDraft(null);
+    invalidateResult();
+    setSessionStatus('Observation deleted · Undo is available below');
+  };
+  const undoDelete = () => {
+    if (!lastDeleted || events.length >= 50 || events.some(event=>event.id===lastDeleted.id)) return;
+    setEvents(prev=>[...prev,lastDeleted].sort((a,b)=>a.minute-b.minute));
+    setLastDeleted(null);invalidateResult();
+    setSessionStatus('Last deleted observation restored');
+  };
   const downloadBrief=()=>{downloadText('matchmind-coaching-brief.md',coachingBrief(),'text/markdown;charset=utf-8');setExportStatus('Coaching brief downloaded');};
   const downloadCsv=()=>{downloadText('matchmind-observations.csv',exportEventsCsv(events),'text/csv;charset=utf-8');setExportStatus('Observations exported to CSV');};
   const copyBrief=async()=>{
@@ -174,6 +242,7 @@ function App() {
       note: newEvent.note.trim().slice(0, 240)
     };
     setEvents((prev) => [...prev, event].sort((a, b) => a.minute - b.minute));
+    setLastDeleted(null);setEditingId(null);setEditDraft(null);
     setNewEvent((prev) => ({ ...prev, note: '', minute: Math.min(prev.minute + 1, 120) }));
     invalidateResult();
   };
@@ -242,8 +311,13 @@ function App() {
               <button type="button" onClick={restoreSession}><RotateCw size={15}/> Restore</button>
               <button type="button" onClick={loadSampleMatch}><Sparkles size={15}/> Load demo match</button>
               <button type="button" onClick={downloadCsv} disabled={!events.length}><Download size={15}/> Export CSV</button>
+              <button type="button" onClick={downloadSession}><Download size={15}/> Export session</button>
+              <button type="button" onClick={()=>importInputRef.current?.click()}><Upload size={15}/> Import session</button>
+              <button type="button" onClick={downloadBrief} disabled={!events.length}><FileText size={15}/> Coaching brief</button>
               <button type="button" className="danger-button" onClick={clearSession}><Trash2 size={15}/> Clear notes</button>
             </div>
+            <input ref={importInputRef} className="visually-hidden" type="file" accept=".json,application/json" aria-label="Choose MatchMind session JSON file" onChange={importSession}/>
+            <p className="ops-explainer">Export and import keep observations on your device. Filters never change the data used by AI. Reports contain only notes you entered.</p>
           </section>
           <section className="insight-panel" aria-label="Observation frequency over time">
             <div><span className="overline">TACTICAL SIGNAL</span><h3>Events through the match</h3><p>These bars show how many events you recorded in each period — not measured possession or performance.</p></div>
