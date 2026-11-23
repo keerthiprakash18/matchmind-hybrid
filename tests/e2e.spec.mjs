@@ -79,3 +79,14 @@ test('capture clean desktop and mobile visual review screenshots', async ({ page
   await page.reload();
   await page.screenshot({ path: 'artifacts/matchmind-mobile.png', fullPage: true });
 });
+
+
+test('tactical signals are derived from observations and clear with the notebook', async ({ page }) => {
+  await page.goto('/');
+  await expect(page.getByRole('heading', { name: 'Signals worth reviewing' })).toBeVisible();
+  await expect(page.locator('.signal-card').first()).toContainText('21′');
+  page.once('dialog', dialog => dialog.accept());
+  await page.getByRole('button', { name: 'Clear notes' }).click();
+  await expect(page.locator('.signal-card')).toHaveCount(0);
+  await expect(page.getByText(/No tactical findings are inferred from an empty notebook/i)).toBeVisible();
+});
