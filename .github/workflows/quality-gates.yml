@@ -54,3 +54,38 @@ jobs:
         run: npm ci
       - name: Production dependency audit
         run: npm audit --audit-level=high
+
+  browser-smoke:
+    name: Chromium desktop and mobile smoke tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Install locked app dependencies
+        run: npm ci
+      - name: Install browser test runner without modifying lockfile
+        run: npm install --no-save --package-lock=false @playwright/test@1.56.1
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Start app and await HTTP readiness
+        shell: bash
+        run: |
+          npm run dev -- --port 4173 > /tmp/matchmind-vite.log 2>&1 &
+          for attempt in $(seq 1 40); do
+            if curl --fail --silent http://127.0.0.1:4173/ >/dev/null; then
+              exit 0
+            fi
+            sleep 1
+          done
+          cat /tmp/matchmind-vite.log
+          exit 1
+      - name: Run browser smoke tests
+        run: npx playwright test tests/e2e.spec.mjs --reporter=line
+        env:
+          BASE_URL: http://127.0.0.1:4173
