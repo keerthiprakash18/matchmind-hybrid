@@ -1,6 +1,6 @@
 # Devpost submission — English draft
 
-> This is a **draft**. Complete real URLs and verify every claim before submitting. Never substitute synthetic or staged results for genuine model output.
+> This is a **draft**. A genuine public YouTube video and GitHub Public visibility are still required. Verify every claim against the final production commit. Never substitute synthetic or staged results for genuine model output.
 
 ## Title
 MatchMind — Hybrid AI for Grassroots Football Coaches
@@ -34,11 +34,11 @@ An original MatchMind starter and subsequent GitHub V0.2 updates were implemente
 
 ## What remains to confirm before submitting
 - Record a real Hybrid → Cloud fallback on a device/browser where no on-device model is available.
-- Test the **deployed HTTPS version** with App Check without a debug token.
-- Public source repository with detectable open-source license.
+- Deployed HTTPS Cloud AI and App Check were observed in user screenshots; rerun on the final merged release and keep provider enforcement enabled.
+- Public source repository with detectable MIT license: https://github.com/keerthiprakash18/matchmind-hybrid (still private until visibility is changed).
 - Free public testing link accessible through judging (no secrets).
 - Public English YouTube video (maximum 3 minutes): **INSERT FINAL URL**.
-- **INSERT FINAL DEMO URL**.
+- Public demo: https://matchmind-hybrid.vercel.app/
 - Add genuine screenshots from actual product, remove debug tokens/PII.
 
 ## Honest limitations
