@@ -49,3 +49,22 @@ test('dynamic fixture labels and latest recorded event stay accurate', async ({p
   await page.getByRole('button', {name:'Log observation'}).click();
   await expect(page.getByText('LAST RECORDED EVENT · 120′')).toBeVisible();
 });
+
+
+test('cloud and hybrid inference require informed cloud-transfer consent; local mode does not', async ({ page }) => {
+  await page.goto('/');
+  const studio=page.locator('#ai-studio');
+  const generate=studio.getByRole('button', { name: /Generate match intelligence/i });
+  const consent=studio.getByRole('checkbox', { name: /I understand that this analysis may use cloud inference/i });
+  await studio.getByRole('button', { name: /^Cloud Remote model only$/i }).click();
+  await expect(generate).toBeDisabled();
+  await expect(consent).toBeVisible();
+  await consent.check();
+  await expect(generate).toBeEnabled();
+  await studio.getByRole('button', { name: /^Hybrid Device first, cloud fallback$/i }).click();
+  await expect(consent).toBeChecked();
+  await expect(generate).toBeEnabled();
+  await studio.getByRole('button', { name: /^On-device Local model only$/i }).click();
+  await expect(consent).not.toBeVisible();
+  await expect(generate).toBeEnabled();
+});
