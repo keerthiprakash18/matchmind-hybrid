@@ -21,7 +21,7 @@ Deadline: **2026-11-30 14:00 PST = 2026-12-01 03:30 IST**.
 - [x] Hybrid prefer-device response actually reported ON_DEVICE (owner screenshot).
 - [x] GitHub Actions unit, typecheck/build, audit, desktop and mobile Chromium checks passed on a previous PR commit.
 - [ ] Current PR head CI **all three jobs green** after final code changes.
-- [ ] Browser AI verification repeated after adding privacy consent and formatting updates.
+- [ ] Browser AI verification repeated after adding privacy consent, formatting, and deterministic rule-based signal updates.
 - [ ] Human QA for 320px, 390px, tablet, desktop; zoom 200%; keyboard-only and screen-reader; reduced motion.
 - [ ] Robust error/slow-loading/retry checks, network-limited fallback proof.
 - [ ] Check potential model quota usage; do not activate paid billing without budget controls/authorization.
