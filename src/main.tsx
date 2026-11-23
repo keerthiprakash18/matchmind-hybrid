@@ -291,7 +291,7 @@ function App() {
                   {mode !== 'local' && <label className="privacy-confirm"><input type="checkbox" checked={privacyAcknowledged} onChange={e=>setPrivacyAcknowledged(e.target.checked)}/><span>I understand that this analysis may use cloud inference.</span></label>}
                 </div>
               </div>
-              <button type="button" className="button-main" onClick={analyze} aria-controls="ai-output" aria-busy={state==='working'} disabled={state==='working'||!events.length||(mode!=='local'&&!privacyAcknowledged)}><Sparkles size={18}/>{state === 'working' ? 'Analyzing observations…' : 'Generate match intelligence'}<ArrowRight size={18}/></button>
+              <button type="button" className="button-main" onClick={analyze} aria-busy={state==='working'} disabled={state==='working'||!events.length||(mode!=='local'&&!privacyAcknowledged)}><Sparkles size={18}/>{state === 'working' ? 'Analyzing observations…' : 'Generate match intelligence'}<ArrowRight size={18}/></button>
               {progress !== null && state === 'working' && mode !== 'cloud' && <p className="download-progress">On-device model download: {progress}% (cloud may be used while downloading)</p>}
               {state === 'error' && <div className="error" role="alert">{error}</div>}
               {state === 'working' && <p className="analysis-status" role="status" aria-live="polite">Generating an evidence-linked report. The source will be displayed only after the Firebase SDK returns it.</p>}
