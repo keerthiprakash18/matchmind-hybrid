@@ -163,7 +163,7 @@ function App() {
     } catch(error) {
       if(generationVersion.current!==version)return;
       setDurationMs(performance.now()-startedAt);
-      setError(friendlyInferenceError(error));setState('error');
+      setError(friendlyInferenceError(error, import.meta.env.PROD ? 'production' : 'development'));setState('error');
     }
   };
 
