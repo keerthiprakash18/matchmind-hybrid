@@ -130,7 +130,23 @@ test('AUDIT: live Firebase model output, evidence controls, exports and report a
   await studio.getByRole('button',{name:/^Hybrid Device first, cloud fallback$/i}).click();
   await studio.getByRole('checkbox',{name:/may use cloud inference/i}).check();
   await studio.getByRole('button',{name:/Generate match intelligence/i}).click();
-  await expect(studio.getByText('Analysis generated')).toBeVisible({timeout:120000});
+  const generated=studio.getByText('Analysis generated');
+  const reportedError=studio.getByRole('alert');
+  try {
+    await Promise.race([
+      generated.waitFor({state:'visible',timeout:90000}),
+      reportedError.waitFor({state:'visible',timeout:90000}).then(async()=>{
+        throw new Error('MODEL_UI_ERROR: '+(await reportedError.innerText()).slice(0,350));
+      })
+    ]);
+  } catch (error) {
+    const status=await studio.locator('.analysis-status').allTextContents();
+    const errs=await reportedError.allTextContents();
+    console.log('AUDIT_AI_FAILURE '+JSON.stringify({status,errors:errs}));
+    mkdirSync('artifacts/audit',{recursive:true});
+    await page.screenshot({path:'artifacts/audit/prod-inference-failure.png',fullPage:true});
+    throw error;
+  }
   await expect(studio.locator('.ai-result .report-section').first()).toBeVisible();
   await expect(studio.locator('.evidence-receipt')).toContainText('ACTUAL ROUTE');
   const source=await studio.locator('.evidence-metrics').innerText();
