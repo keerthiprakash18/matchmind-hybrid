@@ -64,4 +64,4 @@ jobs:
         with:
           node-version: '22'
       - name: Inspect public patched gRPC package
-        run: npm view @grpc/grpc-js@1.14.7 version dist.integrity dist.tarball dependencies --json
+        run: npm view @grpc/grpc-js@1.13.6 version dist.integrity dist.tarball dependencies --json
