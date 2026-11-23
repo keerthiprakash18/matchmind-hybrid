@@ -16,5 +16,5 @@ export function deriveSignals(events) {
       count:relevant.length,
       minutes
     }];
-  }).slice(0,3);
+  });
 }

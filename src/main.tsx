@@ -3,11 +3,12 @@ import { createRoot } from 'react-dom/client';
 import {
   Activity, ArrowDownRight, ArrowRight, BarChart3, CheckCircle2, CircleHelp,
   Cloud, Compass, Cpu, FileText, LockKeyhole, Plus, RotateCcw,
-  ShieldCheck, Sparkles, Target, Trash2, WifiOff, Zap, Download, Save, RotateCw, Copy
+  ShieldCheck, Sparkles, Target, Trash2, WifiOff, Zap, Download, Save, RotateCw, Copy, Pencil, Search, Upload, Undo2, X
 } from 'lucide-react';
 import { generateAnalysis, isFirebaseConfigured } from './firebaseAI';
 import { buildPrompt, EVENT_TYPES, sampleEvents, summarize } from './logic.mjs';
-import { SESSION_KEY, validateSession, exportEventsCsv, exportBrief, eventDistribution } from './session.mjs';
+import { SESSION_KEY, validateSession, exportEventsCsv, exportBrief, eventDistribution, exportSessionJson, importSessionJson, MAX_SESSION_FILE_BYTES } from './session.mjs';
+import { filterObservations } from './notebook.mjs';
 import { friendlyInferenceError } from './errors.mjs';
 import { inferenceLabel } from './inferenceSource.mjs';
 import { parseReportBlocks } from './reportFormat.mjs';
@@ -17,6 +18,7 @@ import './style.css';
 
 type Team = 'Us' | 'Opponent';
 type GameEvent = { id: string; minute: number; team: Team; type: string; note: string };
+type EventDraft = Omit<GameEvent, 'id'>;
 type Mode = 'hybrid' | 'local' | 'cloud';
 type Goal = 'Halftime briefing' | 'Tactical adjustments' | 'Training priorities';
 
@@ -51,6 +53,13 @@ function App() {
   const [exportStatus, setExportStatus] = useState('');
   const generationVersion = useRef(0);
   const [newEvent, setNewEvent] = useState(defaults);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [teamFilter, setTeamFilter] = useState<'All' | Team>('All');
+  const [typeFilter, setTypeFilter] = useState('All');
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editDraft, setEditDraft] = useState<EventDraft | null>(null);
+  const [lastDeleted, setLastDeleted] = useState<GameEvent | null>(null);
+  const importInputRef = useRef<HTMLInputElement>(null);
   const [mode, setMode] = useState<Mode>('hybrid');
   const [goal, setGoal] = useState<Goal>('Halftime briefing');
   const [output, setOutput] = useState('');
@@ -60,6 +69,7 @@ function App() {
   const [progress, setProgress] = useState<number | null>(null);
   const [durationMs, setDurationMs] = useState<number | null>(null);
   const [requestedMode, setRequestedMode] = useState<Mode | null>(null);
+  const visibleEvents = useMemo(() => filterObservations(events, {search:searchQuery, team:teamFilter, type:typeFilter}) as GameEvent[], [events, searchQuery, teamFilter, typeFilter]);
   const stats = useMemo(() => summarize(events), [events]);
   const distribution = useMemo(() => eventDistribution(events), [events]);
   const topDistribution = Math.max(1,...distribution);
@@ -84,6 +94,8 @@ function App() {
   const ready = isFirebaseConfigured();
 
 
+  const resetNotebookFilters = () => {setSearchQuery('');setTeamFilter('All');setTypeFilter('All');};
+
   const invalidateResult = (revokeCloudConsent = true) => {
     generationVersion.current += 1;
     // Consent is specific to the observations in the current request.
@@ -106,7 +118,7 @@ function App() {
       if(!saved){setSessionStatus('No saved session found in this tab');return;}
       const session=validateSession(JSON.parse(saved));
       setHome(session.home);setAway(session.away);
-      setEvents(session.events as GameEvent[]);invalidateResult();
+      setEvents(session.events as GameEvent[]);setLastDeleted(null);setEditingId(null);setEditDraft(null);resetNotebookFilters();invalidateResult();
       setSessionStatus('Saved session restored');
     } catch {setSessionStatus('Saved session invalid — current events preserved');}
   };
@@ -119,6 +131,7 @@ function App() {
     setHome('Our team');
     setAway('Opposition');
     setEvents([]);
+    setLastDeleted(null);setEditingId(null);setEditDraft(null);resetNotebookFilters();
     setNewEvent({...defaults});
     invalidateResult();
     setSessionStatus('Blank match · Ready to log');
@@ -129,6 +142,7 @@ function App() {
     setHome('Eastport FC');
     setAway('Northbridge');
     setEvents(initialEvents.map(e=>({...e})));
+    setLastDeleted(null);setEditingId(null);setEditDraft(null);resetNotebookFilters();
     setNewEvent({...defaults});
     invalidateResult();
     setSessionStatus('Fictional demo restored · Not saved');
@@ -136,8 +150,11 @@ function App() {
   };
   const clearSession = () => {
     if(!window.confirm('Clear match notes and the saved tab session? This cannot be undone.'))return;
-    sessionStorage.removeItem(SESSION_KEY);setEvents([]);invalidateResult();
-    setSessionStatus('Notes and saved session cleared');
+    let storageCleared = true;
+    try { sessionStorage.removeItem(SESSION_KEY); }
+    catch { storageCleared = false; }
+    setEvents([]);setLastDeleted(null);setEditingId(null);setEditDraft(null);resetNotebookFilters();invalidateResult();
+    setSessionStatus(storageCleared ? 'Notes and saved session cleared' : 'Notes cleared from the screen, but saved browser storage could not be removed. Check browser settings.');
   };
   const downloadText = (filename:string,body:string,mime:string) => {
     const url=URL.createObjectURL(new Blob([body],{type:mime}));
@@ -146,7 +163,63 @@ function App() {
     window.setTimeout(()=>URL.revokeObjectURL(url),1500);
   };
   const coachingBrief=()=>exportBrief({home,away,events,goal,output,source});
-  const downloadBrief=()=>{downloadText('matchmind-coaching-brief.md',coachingBrief(),'text/markdown;charset=utf-8');setExportStatus('Coaching brief downloaded');};
+  const downloadSession = () => {
+    try {
+      const json=exportSessionJson({schemaVersion:2,home,away,events});
+      downloadText('matchmind-session.json',json,'application/json;charset=utf-8');
+      setSessionStatus('Session JSON downloaded to your device · No cloud upload');
+    } catch {setSessionStatus('Could not export session. Check your match notes.');}
+  };
+  const importSession = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const input=e.currentTarget;
+    const file=input.files?.[0];
+    if (!file) return;
+    try {
+      if (file.size > MAX_SESSION_FILE_BYTES) throw new Error('File too large');
+      const session=importSessionJson(await file.text());
+      if (!window.confirm('Replace current unsaved notes with the imported session? Saved tab data will remain unchanged.')) return;
+      setHome(session.home);setAway(session.away);setEvents(session.events as GameEvent[]);
+      setEditingId(null);setEditDraft(null);setLastDeleted(null);resetNotebookFilters();
+      invalidateResult();
+      setSessionStatus('Imported '+session.events.length+' validated observations · No upload');
+    } catch {
+      setSessionStatus('Import rejected: invalid or oversized MatchMind session JSON. Your notes are unchanged.');
+    } finally {
+      input.value='';
+    }
+  };
+  const validDraft = (draft:EventDraft) =>
+    Number.isInteger(draft.minute) && draft.minute >= 0 && draft.minute <= 120 &&
+    (draft.team === 'Us' || draft.team === 'Opponent') &&
+    EVENT_TYPES.includes(draft.type) && Boolean(draft.note.trim());
+  const editObservation = (event:GameEvent) => {
+    setEditingId(event.id);
+    setEditDraft({minute:event.minute,team:event.team,type:event.type,note:event.note});
+  };
+  const saveObservationEdit = () => {
+    if (!editingId || !editDraft || !validDraft(editDraft)) {
+      setSessionStatus('Could not update: enter a whole minute from 0–120, valid event and description.');
+      return;
+    }
+    const updated:GameEvent = {id:editingId,minute:editDraft.minute,team:editDraft.team,type:editDraft.type,note:editDraft.note.trim().slice(0,240)};
+    setEvents(prev=>prev.map(event=>event.id===editingId?updated:event).sort((a,b)=>a.minute-b.minute));
+    setEditingId(null);setEditDraft(null);setLastDeleted(null);
+    invalidateResult();
+    setSessionStatus('Observation corrected · Previous AI output cleared');
+  };
+  const deleteObservation = (event:GameEvent) => {
+    setEvents(prev=>prev.filter(item=>item.id!==event.id));
+    setLastDeleted(event);setEditingId(null);setEditDraft(null);
+    invalidateResult();
+    setSessionStatus('Observation deleted · Undo is available below');
+  };
+  const undoDelete = () => {
+    if (!lastDeleted || events.length >= 50 || events.some(event=>event.id===lastDeleted.id)) return;
+    setEvents(prev=>[...prev,lastDeleted].sort((a,b)=>a.minute-b.minute));
+    setLastDeleted(null);invalidateResult();
+    setSessionStatus('Last deleted observation restored');
+  };
+  const downloadBrief=()=>{downloadText('matchmind-coaching-brief.md',coachingBrief(),'text/markdown;charset=utf-8');setExportStatus('Coaching brief downloaded');setSessionStatus('Coaching brief downloaded · Review evidence before acting');};
   const downloadCsv=()=>{downloadText('matchmind-observations.csv',exportEventsCsv(events),'text/csv;charset=utf-8');setExportStatus('Observations exported to CSV');};
   const copyBrief=async()=>{
     try{await navigator.clipboard.writeText(coachingBrief());setExportStatus('Coaching brief copied');}
@@ -174,6 +247,7 @@ function App() {
       note: newEvent.note.trim().slice(0, 240)
     };
     setEvents((prev) => [...prev, event].sort((a, b) => a.minute - b.minute));
+    setLastDeleted(null);setEditingId(null);setEditDraft(null);resetNotebookFilters();
     setNewEvent((prev) => ({ ...prev, note: '', minute: Math.min(prev.minute + 1, 120) }));
     invalidateResult();
   };
@@ -242,8 +316,13 @@ function App() {
               <button type="button" onClick={restoreSession}><RotateCw size={15}/> Restore</button>
               <button type="button" onClick={loadSampleMatch}><Sparkles size={15}/> Load demo match</button>
               <button type="button" onClick={downloadCsv} disabled={!events.length}><Download size={15}/> Export CSV</button>
+              <button type="button" onClick={downloadSession}><Download size={15}/> Export session</button>
+              <button type="button" onClick={()=>importInputRef.current?.click()}><Upload size={15}/> Import session</button>
+              <button type="button" onClick={downloadBrief} disabled={!events.length}><FileText size={15}/> Coaching brief</button>
               <button type="button" className="danger-button" onClick={clearSession}><Trash2 size={15}/> Clear notes</button>
             </div>
+            <input ref={importInputRef} className="visually-hidden" type="file" accept=".json,application/json" aria-label="Choose MatchMind session JSON file" onChange={importSession}/>
+            <p className="ops-explainer">Export and import keep observations on your device. Filters never change the data used by AI. Reports contain only notes you entered.</p>
           </section>
           <section className="insight-panel" aria-label="Observation frequency over time">
             <div><span className="overline">TACTICAL SIGNAL</span><h3>Events through the match</h3><p>These bars show how many events you recorded in each period — not measured possession or performance.</p></div>
@@ -269,7 +348,65 @@ function App() {
 
           <div className="two-col">
             <section className="panel" id="notebook"><div className="panel-title"><div><span className="overline">THE INPUT</span><h2>Touchline notebook</h2><p>A simple record of what actually happened.</p></div><span className="counter">{events.length}/50</span></div>
-              <div className="timeline">{events.length === 0 && <p className="empty">No events yet. Log your first observation below.</p>}{events.map((event) => <div className="event" key={event.id}><div className="minute">{event.minute}'</div><span className={'event-marker ' + (event.team === 'Us' ? 'ours' : 'theirs')}/><div className="event-body"><div className="event-top"><strong>{event.type}</strong><span className={event.team === 'Us' ? 'team-pill ours-pill' : 'team-pill'}>{event.team === 'Us' ? 'OUR TEAM' : 'OPPONENT'}</span></div><p>{event.note}</p></div><button className="icon-button" title="Delete this observation" aria-label={'Delete event at minute ' + event.minute} onClick={() => {setEvents(prev => prev.filter(e => e.id !== event.id));invalidateResult();}}><Trash2 size={15}/></button></div>)}</div>
+              <div className="notebook-tools" role="group" aria-label="Find observations">
+                <label htmlFor="observation-search"><Search size={14}/> Search notes
+                  <input id="observation-search" type="search" value={searchQuery} onChange={e=>setSearchQuery(e.target.value)}
+                    placeholder="Minute, event or keyword" maxLength={100}/>
+                </label>
+                <label htmlFor="observation-team">Filter by team
+                  <select id="observation-team" value={teamFilter} onChange={e=>setTeamFilter(e.target.value as 'All' | Team)}>
+                    <option value="All">Both teams</option><option value="Us">Our team</option><option value="Opponent">Opponent</option>
+                  </select>
+                </label>
+                <label htmlFor="observation-type">Filter by event
+                  <select id="observation-type" value={typeFilter} onChange={e=>setTypeFilter(e.target.value)}>
+                    <option value="All">All types</option>{EVENT_TYPES.map((type:string)=><option key={type} value={type}>{type}</option>)}
+                  </select>
+                </label>
+              </div>
+              <p className="filtered-count" role="status">Showing {visibleEvents.length} of {events.length} logged observations. Summary and AI use all events.</p>
+              {lastDeleted && <div className="undo-banner" role="status"><span>Observation at {lastDeleted.minute}′ removed.</span>
+                <button type="button" onClick={undoDelete}><Undo2 size={14}/> Undo deletion</button></div>}
+              <div className="timeline">
+                {events.length === 0 && <p className="empty">No events yet. Log your first observation below.</p>}
+                {events.length > 0 && visibleEvents.length === 0 && <p className="empty">No observations match these filters. Your original notes have not changed.</p>}
+                {visibleEvents.map((event) => <div className="event" key={event.id}>
+                  <div className="minute">{event.minute}'</div>
+                  <span className={'event-marker ' + (event.team === 'Us' ? 'ours' : 'theirs')}/>
+                  <div className="event-body">
+                    <div className="event-top"><strong>{event.type}</strong>
+                      <span className={event.team === 'Us' ? 'team-pill ours-pill' : 'team-pill'}>{event.team === 'Us' ? 'OUR TEAM' : 'OPPONENT'}</span>
+                    </div>
+                    {editingId === event.id && editDraft ? <div className="edit-form" role="group" aria-label={'Edit observation at minute ' + event.minute}>
+                      <div className="edit-row">
+                        <label>MIN<input aria-label={'Edit minute at ' + event.minute} type="number" min="0" max="120" step="1"
+                          value={editDraft.minute} onChange={e=>setEditDraft(p=>p?{...p,minute:Number(e.target.value)}:null)}/></label>
+                        <label>TEAM<select aria-label={'Edit team at ' + event.minute} value={editDraft.team}
+                          onChange={e=>setEditDraft(p=>p?{...p,team:e.target.value as Team}:null)}>
+                          <option value="Us">Us</option><option value="Opponent">Opponent</option>
+                        </select></label>
+                        <label>EVENT<select aria-label={'Edit event type at ' + event.minute} value={editDraft.type}
+                          onChange={e=>setEditDraft(p=>p?{...p,type:e.target.value}:null)}>
+                          {EVENT_TYPES.map((type:string)=><option key={type}>{type}</option>)}
+                        </select></label>
+                      </div>
+                      <label>OBSERVATION<textarea aria-label={'Edit observation text at ' + event.minute}
+                        rows={2} maxLength={240} value={editDraft.note}
+                        onChange={e=>setEditDraft(p=>p?{...p,note:e.target.value}:null)}/></label>
+                      <div className="edit-actions">
+                        <button type="button" className="button-secondary" onClick={saveObservationEdit}>Save changes</button>
+                        <button type="button" className="button-secondary" onClick={()=>{setEditingId(null);setEditDraft(null);}}><X size={14}/> Cancel</button>
+                      </div>
+                    </div> : <p>{event.note}</p>}
+                  </div>
+                  <div className="event-actions">
+                    <button type="button" className="icon-button" title="Edit observation"
+                      aria-label={'Edit event at minute ' + event.minute} onClick={()=>editObservation(event)}><Pencil size={15}/></button>
+                    <button type="button" className="icon-button" title="Delete observation"
+                      aria-label={'Delete event at minute ' + event.minute} onClick={()=>deleteObservation(event)}><Trash2 size={15}/></button>
+                  </div>
+                </div>)}
+              </div>
               <form className="event-form" onSubmit={addEvent}><strong><Plus size={15}/> Add an observation</strong><div className="form-row"><label>MIN<input type="number" min="0" max="120" step="1" value={newEvent.minute} onChange={(e) => setNewEvent(p=>({...p,minute: Number(e.target.value)}))} required/></label><label>TEAM<select value={newEvent.team} onChange={e=>setNewEvent(p=>({...p,team:e.target.value as Team}))}><option>Us</option><option>Opponent</option></select></label><label className="type-select">EVENT<select value={newEvent.type} onChange={e=>setNewEvent(p=>({...p,type:e.target.value}))}>{EVENT_TYPES.map((type: string)=><option key={type}>{type}</option>)}</select></label></div><label className="note-label">WHAT HAPPENED?<textarea value={newEvent.note} onChange={e=>setNewEvent(p=>({...p,note:e.target.value.slice(0,240)}))} placeholder="e.g. Left side exposed during transition..." maxLength={240} rows={2} required/></label><button className="button-secondary" type="submit" disabled={events.length>=50}><Plus size={16}/> Log observation</button></form>
             </section>
 
@@ -281,6 +418,12 @@ function App() {
                 <button aria-pressed={mode==='cloud'} className={'mode '+(mode==='cloud'?'selected':'')} onClick={()=>{setMode('cloud');invalidateResult(false);}}><Cloud size={19}/><strong>Cloud</strong><small>Remote model only</small></button>
               </div>
               <div className="device-readiness" role="status" aria-live="polite"><Cpu size={15}/><span>{deviceStatus}. Browser support is advisory; verify the actual inference route below.</span></div>
+              <details className="device-guide">
+                <summary>Device setup & why the route can change</summary>
+                <p><strong>On-device:</strong> compatible Chrome desktop (139+) and an installed Gemini Nano model are required. The first request may download a model. The exact SDK route appears in the analysis receipt.</p>
+                <p><strong>Hybrid:</strong> prefers the device, and can send your notes to Firebase Gemini Cloud when local inference is unavailable. An internet-disconnected response is only possible when a supported on-device model is installed and the application can initialize it.</p>
+                <a href="https://firebase.google.com/docs/ai-logic/hybrid/web/get-started" target="_blank" rel="noopener noreferrer">Firebase official setup guide ↗</a>
+              </details>
               <div className="focus-box"><label htmlFor="goal">WHAT DO YOU NEED?</label><select id="goal" value={goal} onChange={(e)=>{setGoal(e.target.value as Goal);invalidateResult();}}><option>Halftime briefing</option><option>Tactical adjustments</option><option>Training priorities</option></select><p>AI suggestions use only logged observations. The model may still be wrong; the coach makes the final decision.</p></div>
               <div className="cloud-privacy" role="note">
                 <LockKeyhole size={17} aria-hidden="true"/>
@@ -319,7 +462,7 @@ function App() {
           </div>
 
           <section className="architecture" id="how-it-works"><div><span className="overline">BUILT FOR HYBRID</span><h2>Intelligence that meets you <em>where you are.</em></h2><p>Local when supported. Cloud when needed. Clear about which one actually answered.</p></div><div className="architecture-flow"><div><Cpu size={22}/><strong>Gemini Nano</strong><span>On your Chrome desktop</span></div><ArrowRight className="flow-arrow" size={22}/><div><Activity size={22}/><strong>Firebase AI Logic</strong><span>Routes every request</span></div><ArrowRight className="flow-arrow" size={22}/><div><Cloud size={22}/><strong>Gemini Cloud</strong><span>Fallback when unavailable</span></div></div></section>
-          <footer><span>© 2026 MATCHMIND · DEMONSTRATION PROTOTYPE</span><span><WifiOff size={15}/> Offline requires a supported on-device model <CircleHelp size={14}/></span></footer>
+          <footer><span>© 2026 MATCHMIND · COACHING WORKSPACE</span><span><WifiOff size={15}/> Offline requires a supported on-device model <CircleHelp size={14}/></span></footer>
         </div>
         <nav className="mobile-nav" aria-label="Mobile navigation">
           <a href="#overview"><BarChart3 size={19}/><span>Overview</span></a>

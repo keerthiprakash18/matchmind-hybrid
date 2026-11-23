@@ -20,6 +20,10 @@ test('brief carries provenance and does not misrepresent inference',()=>{
   assert.match(brief,/not a live match feed/);
   assert.match(brief,/Coach review required/);
   assert.match(brief,/UNREPORTED/);
+  assert.match(brief,/Recorded event counts/);
+  assert.match(brief,/Evidence-led coaching review questions/);
+  assert.match(brief,/Wide overload recorded/);
+  assert.match(brief,/Opponent threats logged: 1/);
 });
 test('timelines count actual logged events only',()=>{
   assert.deepEqual(eventDistribution([{minute:0},{minute:29},{minute:30},{minute:91},{minute:119},{minute:120}]),[2,1,0,3]);
