@@ -189,3 +189,68 @@ html{scroll-padding-top:20px}
   .architecture p,.architecture-flow span{font-size:11px}
   .architecture-flow strong{font-size:11px}
 }
+
+
+/* V1 coach workflow: fast observation corrections, filters and portable local sessions. */
+.visually-hidden{
+  position:absolute!important;width:1px!important;height:1px!important;overflow:hidden!important;
+  clip:rect(0,0,0,0)!important;white-space:nowrap!important;clip-path:inset(50%)!important;
+}
+.ops-explainer{margin:13px 0 0;color:#54647c;font-size:11px;line-height:1.6}
+.notebook-tools{
+  display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,.72fr) minmax(0,.95fr);
+  gap:8px;align-items:end;margin-top:23px;padding:14px;border:1px solid #e1e7f0;
+  border-radius:13px;background:#f8faff
+}
+.notebook-tools label{
+  display:grid;gap:7px;min-width:0;color:#4c5d77;font-size:10px;font-weight:800;
+  line-height:1.35;letter-spacing:.1px
+}
+.notebook-tools label svg{display:none}
+.notebook-tools input,.notebook-tools select{
+  min-height:38px;width:100%;min-width:0;border:1px solid #dce3ee;border-radius:8px;
+  padding:8px 9px;background:white;color:#253650;font-size:11px;
+}
+.notebook-tools :is(input,select):focus-visible{outline:3px solid #8dacf8;outline-offset:1px}
+.filtered-count{color:#67758a;font-size:10px;line-height:1.5;margin:11px 0 0}
+.timeline{margin-top:20px}
+.event-actions{display:flex;gap:3px;flex-direction:column;align-items:center;flex:0 0 30px}
+.event-actions .icon-button{color:#617189;min-width:29px;min-height:29px;border-radius:7px}
+.event-actions .icon-button:hover,.event-actions .icon-button:focus-visible{color:#214cd1;background:#e9effd}
+.event-actions .icon-button:last-child:hover{color:#b23538;background:#fff0f0}
+.undo-banner{
+  display:flex;align-items:center;justify-content:space-between;gap:10px;
+  margin-top:14px;padding:10px 13px;border-radius:10px;background:#f1f7ff;
+  border:1px solid #cdddf7;color:#274673;font-size:11px;line-height:1.45
+}
+.undo-banner button{
+  display:inline-flex;align-items:center;justify-content:center;gap:5px;
+  min-height:36px;padding:8px 10px;border:1px solid #98b8ed;
+  border-radius:8px;background:#fff;color:#1c4ca2;font-size:11px;font-weight:800
+}
+.edit-form{display:grid;gap:10px;margin:10px 0 12px;padding:13px;background:#f7faff;
+  border:1px solid #dbe6f8;border-radius:11px}
+.edit-form .edit-row{display:grid;grid-template-columns:65px 96px minmax(0,1fr);gap:7px}
+.edit-form label{display:grid;gap:5px;color:#4f627c;font-size:9px;font-weight:800;min-width:0}
+.edit-form :is(input,select,textarea){
+  width:100%;min-width:0;border:1px solid #d6dfef;border-radius:7px;
+  background:#fff;color:#25354c;font-size:12px;padding:8px;min-height:37px
+}
+.edit-form textarea{resize:vertical;min-height:65px}
+.edit-form :is(input,select,textarea):focus-visible{outline:3px solid #8dacf8;outline-offset:1px}
+.edit-actions{display:flex;gap:8px;flex-wrap:wrap}
+.edit-actions .button-secondary{margin:0;min-height:38px;padding:8px 11px}
+@media(max-width:1180px){
+  .notebook-tools{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+  .notebook-tools label:first-child{grid-column:1/-1}
+}
+@media(max-width:650px){
+  .notebook-tools{grid-template-columns:minmax(0,1fr) minmax(0,1fr);padding:12px}
+  .notebook-tools label{font-size:11px}
+  .notebook-tools input,.notebook-tools select{font-size:12px;min-height:42px}
+  .event-actions .icon-button{min-height:38px;min-width:34px}
+  .edit-form .edit-row{grid-template-columns:56px 83px minmax(0,1fr);gap:5px}
+  .edit-form{padding:9px}
+  .edit-form :is(input,select,textarea){font-size:12px;padding:7px}
+  .ops-explainer,.filtered-count{font-size:11px}
+}
