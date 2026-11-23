@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { readFileSync } from 'node:fs';
+import { readFileSync, mkdirSync } from 'node:fs';
 test.use({ baseURL: process.env.BASE_URL || 'http://127.0.0.1:4173' });
 
 test('desktop workspace preserves local session and exports safe CSV', async ({ page }) => {
@@ -71,6 +71,7 @@ test('cloud and hybrid inference require informed cloud-transfer consent; local 
 
 
 test('capture clean desktop and mobile visual review screenshots', async ({ page }) => {
+  mkdirSync('artifacts', { recursive: true });
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto('/');
   await page.screenshot({ path: 'artifacts/matchmind-desktop.png', fullPage: true });
