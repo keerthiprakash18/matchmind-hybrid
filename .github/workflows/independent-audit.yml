@@ -2,7 +2,9 @@ name: MatchMind independent read-only audit
 
 on:
   push:
-    branches: [main, feat/independent-audit-20261123]
+    branches: [main, 'feat/**']
+  pull_request:
+    branches: [main]
   workflow_dispatch:
 
 permissions:
