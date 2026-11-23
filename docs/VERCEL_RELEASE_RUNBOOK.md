@@ -1,7 +1,7 @@
 # MatchMind — production deployment and rollback runbook
 
 ## Preflight (non-negotiable)
-1. Review and merge only a **green** GitHub PR. Do not deploy an unreviewed draft to production.
+1. Review and merge only a **green** GitHub PR. V0.2 changes were integrated via PR #3 → PR #2 → main after passing the GitHub CI gates. Do not deploy an unreviewed draft to production.
 2. Run `npm ci`, `npm test`, `npm run build`, `npm audit --audit-level=high`; verify GitHub Chromium desktop/mobile and accessibility gates.
 3. Inspect `git ls-files` for accidental `.env`, OAuth tokens, App Check debug token, private keys, credentials or copied browser data. `.env.example` must contain only empty placeholders.
 4. Revoke debug tokens that appeared in screenshots; ensure the production build never activates debug attestation.
