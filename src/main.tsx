@@ -124,7 +124,7 @@ function App() {
     if (!window.confirm('Load the fictional demo match? Your current unsaved observations will be replaced. Your saved tab session will remain available.')) return;
     setHome('Eastport FC');
     setAway('Northbridge');
-    setEvents(sampleEvents.map(e=>({...e})));
+    setEvents(initialEvents.map(e=>({...e})));
     setNewEvent({...defaults});
     invalidateResult();
     setSessionStatus('Fictional demo restored · Not saved');
