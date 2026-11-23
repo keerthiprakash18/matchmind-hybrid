@@ -4,14 +4,14 @@
 1. Open the **deployed HTTPS link** provided on the Devpost form (not localhost).
 2. The workspace starts with **clearly labeled synthetic demo events**. No account, personal data or paid API key required.
 3. Inspect the dashboard and the evidence-frequency chart; these show **counts of manually logged observations**, not live telemetry, possession or match tracking.
-4. Choose **Cloud**, select *Halftime briefing*, and click **Generate match intelligence**. Read the suggested adjustments and the **Inference & evidence receipt**. Confirm the actual source says **CLOUD**.
+4. Choose **Cloud**, acknowledge the on-screen cloud-transfer notice, select *Halftime briefing*, and click **Generate match intelligence**. Read the suggested adjustments and the **Inference & evidence receipt**. Confirm the actual source says **CLOUD**.
 5. Add or remove an observation; the previous AI answer should be cleared automatically. Generate a new analysis to demonstrate evidence-linked updates.
 6. Export the coaching brief or observations CSV. Use Save/Restore to test voluntary browser-tab storage.
 
 ## Chrome desktop — Gemini Nano and Hybrid
 - Native on-device inference requires a compatible **Chrome desktop 139+**, sufficient disk/storage and the multimodal Prompt API flag `chrome://flags/#prompt-api-for-gemini-nano-multimodal-input` enabled. Initial model download is device-specific.
 - Choose **On-device**. Generate and verify that the Firebase SDK reports **ON DEVICE** in the result, not just that a local model is detected.
-- Choose **Hybrid**. On a prepared Chrome desktop with a local model, it should prefer local; inspect the actual reported source.
+- Choose **Hybrid**, acknowledge the possible cloud transfer, and generate. On a prepared Chrome desktop with a local model, it should prefer local; inspect the actual reported source.
 - To verify fallback, use a separate browser/device without the supported Prompt API (for example Edge), with production App Check working. Hybrid should report **CLOUD**; this demonstration must actually be run and recorded. Merely testing Cloud mode is *not* proof of fallback.
 - The evidence receipt shows **model route, elapsed time and observed timestamp coverage**. Timestamp matching is *not* a claim that model reasoning is factually verified.
 
