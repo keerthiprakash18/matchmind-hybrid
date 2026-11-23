@@ -12,7 +12,7 @@
 - SDK-provided inference provenance badge with an **Inference & evidence receipt**: requested mode, actual route, elapsed time, timestamp coverage and unlogged timestamp warning. This is not a guarantee that AI reasoning is accurate.
 - Explicit tab-only save/restore and clear. No backend database or silent persistence.
 - Export CSV (formula injection protected), download Markdown coaching brief and copy report.
-- Privacy disclosure, accessible controls and safe UI error messages that do not echo raw API URLs or credentials.
+- Privacy disclosure and **explicit opt-in acknowledgment** before Cloud/Hybrid requests can send match notes to cloud; local-only requires no cloud consent. Accessible controls and safe UI errors do not echo raw API URLs or credentials.
 
 ## Quick start
 
@@ -48,7 +48,7 @@ npm audit --audit-level=high
 - Current app sends observations to cloud only when generating cloud/hybrid inference; it does not upload them to Firestore.
 - Developer tokens shown in older screenshots should be revoked and replaced outside public view.
 
-See [security and QA checks](docs/QA_AND_SECURITY.md), [judge testing guide](docs/JUDGE_TESTING.md), [submission description draft](docs/DEVPOST_SUBMISSION_DRAFT.md) and [three-minute demo storyboard](docs/DEMO_SCRIPT_3_MIN.md).
+See the [competition release acceptance criteria](docs/RELEASE_ACCEPTANCE.md), [security and QA checks](docs/QA_AND_SECURITY.md), [judge testing guide](docs/JUDGE_TESTING.md), [submission description draft](docs/DEVPOST_SUBMISSION_DRAFT.md) and [three-minute demo storyboard](docs/DEMO_SCRIPT_3_MIN.md).
 
 ## Submission gates
 
