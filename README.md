@@ -39,12 +39,12 @@ In PowerShell, use `Copy-Item .env.example .env` to create a local environment f
 npm test
 node scripts/security-gates.mjs
 npm run build
-npm audit --omit=dev --audit-level=high
+npm audit --audit-level=high
 ```
 
 - Unit tests cover observation validation, prompt boundaries, session schema, CSV injection and error redaction.
 - Browser QA, genuine Chrome on-device inference and real hybrid fallback require device testing. **Do not simulate a local-model result.**
-- Existing lockfile currently contains a reported transitive `@grpc/grpc-js` advisory via Firebase's Firestore dependency. Audit must be remediated and rerun before a public release. Don't use `npm audit fix --force` blindly.
+- The previously vulnerable transitive `@grpc/grpc-js@1.9.16` has been overridden with the patched `1.13.6`, and the lockfile includes a verified registry integrity hash. CI must still validate the full dependency tree and the actual Firebase build. Don't use `npm audit fix --force` blindly.
 - Current app sends observations to cloud only when generating cloud/hybrid inference; it does not upload them to Firestore.
 - Developer tokens shown in older screenshots should be revoked and replaced outside public view.
 
