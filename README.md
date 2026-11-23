@@ -16,6 +16,8 @@
 - Full 50-event notebook with safe inline editing, undo deletion, search and team/event filters. Filtered views never alter the underlying observations used by AI or statistics.
 - **All applicable evidence-led coaching signals** are computed deterministically from logged event types and minutes, independently of generative AI, with explicitly non-predictive labeling.
 - AI focus modes: halftime briefing, tactical adjustments and training priorities.
+- **Consistent evidence-linked AI reports**: Gemini Nano's labels and Gemini Cloud's numbered/plain-text variations render as the same readable, semantically grouped Overview → Insights → Coaching adjustments → Limitations experience. The renderer never invents or rewrites tactical facts; original model text remains available in the Markdown coaching brief.
+- **Live route comparison for an unchanged notebook**: up to three recent real Firebase SDK inference results (requested mode, reported route, duration and timestamp coverage), held only in tab memory without saving prompts, notes or model output. Editing observations clears comparisons and any stale AI report.
 - AI inference: **Hybrid**, **On-device only**, **Cloud only** using Firebase AI Logic.
 - SDK-provided inference provenance badge with an **Inference & evidence receipt**: requested mode, actual route, elapsed time, timestamp coverage and unlogged timestamp warning. This is not a guarantee that AI reasoning is accurate.
 - Explicit browser-tab save/restore and clear, plus bounded validated JSON export/import for continuity between devices. No backend database or silent persistence. Invalid/oversized imports are rejected without losing existing notes.
@@ -50,8 +52,8 @@ npm run build
 npm audit --audit-level=high
 ```
 
-- Unit tests cover observation validation, prompt boundaries, session schema, CSV injection and error redaction.
-- Chrome local and Cloud inference were demonstrated in user screenshots. **Real Hybrid → Cloud fallback was verified on the public HTTPS site in GitHub Actions run 45181931811**, where a Chromium browser without a local model requested Hybrid and the Firebase SDK reported CLOUD. This proof applies to the tested production deployment; retest after any inference-routing changes.
+- Unit tests cover observation validation, prompt boundaries, session schema, CSV injection, error redaction, actual example Cloud/Nano report formatting, and metadata-only route history. Browser tests verify responsive layouts, keyboard accessibility and local coaching workflows.
+- Chrome local and Cloud inference were demonstrated in user screenshots on 2026-11-23: Hybrid requested → SDK reported ON DEVICE (19.6s), On-device only → ON DEVICE (5.5s), and Cloud only → CLOUD (3.0s). These were observations on the then-current V1 production build, not a guarantee across later code changes or all devices. **Real Hybrid → Cloud fallback was verified on the public HTTPS site in GitHub Actions run 45181931811**, where a Chromium browser without a local model requested Hybrid and the Firebase SDK reported CLOUD. This proof applies to the tested production deployment; retest after any inference-routing changes.
 - The previously vulnerable transitive `@grpc/grpc-js@1.9.16` has been overridden with the patched `1.13.6`, and the lockfile includes a verified registry integrity hash. CI must still validate the full dependency tree and the actual Firebase build. Don't use `npm audit fix --force` blindly.
 - Current app sends observations to cloud only when generating cloud/hybrid inference; it does not upload them to Firestore.
 - Developer tokens shown in older screenshots should be revoked and replaced outside public view.
