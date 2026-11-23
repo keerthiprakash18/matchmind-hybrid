@@ -351,3 +351,6 @@ html{scroll-padding-top:20px}
   .event-form .form-row { grid-template-columns: 60px 78px minmax(0, 1fr); gap: 7px; }
   .event-form .form-row select { text-overflow: ellipsis; }
 }
+
+/* An empty bucket must never render a visible bar, even during the transition. */
+.dist-fill.empty-bucket{height:0!important;min-height:0;transition:none}
