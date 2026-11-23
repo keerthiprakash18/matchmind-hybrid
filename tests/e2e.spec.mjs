@@ -34,4 +34,18 @@ test('mobile layout avoids horizontal overflow and supports notebook actions', a
   expect(overflow).toBeLessThanOrEqual(1);
   await page.getByRole('button', { name: 'Export CSV' }).scrollIntoViewIfNeeded();
   await expect(page.getByRole('button', { name: 'Export CSV' })).toBeEnabled();
+  await expect(page.getByRole('navigation', { name: 'Mobile navigation' })).toBeVisible();
+  await page.getByRole('navigation', { name: 'Mobile navigation' }).getByRole('link', { name: /AI studio/i }).click();
+  await expect(page).toHaveURL(/#ai-studio$/);
+});
+
+test('dynamic fixture labels and latest recorded event stay accurate', async ({page}) => {
+  await page.goto('/');
+  await expect(page.getByText('LAST RECORDED EVENT · 41′')).toBeVisible();
+  await page.getByRole('textbox', {name:'Our team name'}).fill('Scarlet City');
+  await expect(page.locator('.team-monogram.blue')).toHaveText('S');
+  await page.getByPlaceholder('e.g. Left side exposed during transition...').fill('Observed pressing detail.');
+  await page.getByLabel('MIN', {exact:true}).fill('120');
+  await page.getByRole('button', {name:'Log observation'}).click();
+  await expect(page.getByText('LAST RECORDED EVENT · 120′')).toBeVisible();
 });
