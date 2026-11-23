@@ -56,7 +56,7 @@ npm audit --audit-level=high
 - Current app sends observations to cloud only when generating cloud/hybrid inference; it does not upload them to Firestore.
 - Developer tokens shown in older screenshots should be revoked and replaced outside public view.
 
-See the [competition release acceptance criteria](docs/RELEASE_ACCEPTANCE.md), [security and QA checks](docs/QA_AND_SECURITY.md), [judge testing guide](docs/JUDGE_TESTING.md), [submission description draft](docs/DEVPOST_SUBMISSION_DRAFT.md) and [three-minute demo storyboard](docs/DEMO_SCRIPT_3_MIN.md).
+See [privacy](PRIVACY.md), [security disclosure](SECURITY.md), [release acceptance](docs/RELEASE_ACCEPTANCE.md), [security and QA checks](docs/QA_AND_SECURITY.md), [judge testing guide](docs/JUDGE_TESTING.md), [submission description draft](docs/DEVPOST_SUBMISSION_DRAFT.md), and [three-minute demo storyboard](docs/FINAL_DEMO_NARRATION.md).
 
 ## Submission gates
 
