@@ -2,12 +2,12 @@
 
 ## Known verified
 - In earlier local tests, the original starter had 4/4 unit tests and a production Vite build.
-- Latest owner screenshot showed a genuine Firebase AI Logic generated response in Cloud mode.
+- Owner's screenshots showed genuine Firebase AI Logic responses for Cloud, On-device, and Hybrid → On-device (with SDK-reported source). Hybrid → Cloud fallback remains to be proved independently.
 - Firebase App Check Web registration was completed in Firebase console.
 
 ## New work — must verify after this PR
-- Unit tests (including session validation, CSV formula escaping, error redaction), TypeScript build, browser desktop/mobile layout.
-- Test on Chrome 139+ with on-device model; record a real `ON_DEVICE` result before saying it works offline.
+- GitHub Actions CI run **45146854933** passed unit tests (including session validation, CSV formula escaping, evidence timestamp matching and error redaction), TypeScript/Vite production build, npm dependency audit, desktop/mobile Chromium smoke and WCAG 2.1 AA automated scans. These are not substitutes for real-world manual testing.
+- On-device source was observed on Chrome desktop. **Offline network-disconnected inference has not yet been verified.** Test it separately before making offline claims.
 - Verify cloud inference separately and prove hybrid fallback when model is unsupported.
 - Test 1-50 events, empty/invalid notes, restore session and clear confirmation, download CSV/brief, no stale AI result after edits.
 - Audit dependency CVEs. Current branch overrides vulnerable `@grpc/grpc-js@1.9.16` with patched `1.13.6`, and uses a registry-sourced SHA-512 integrity in `package-lock.json`. **Pending: rerun strict npm audit and confirm npm ci + Firebase build success in CI.** Never suppress failures or use `npm audit fix --force` (it can break Firebase hybrid SDK).
@@ -20,7 +20,7 @@
 1. CI green: unit tests + TypeScript/Vite build + dependency audit.
 2. App Check production-domain reCAPTCHA Enterprise attestation verified.
 3. Real AI cloud response and on-device response on supported hardware, with SDK-reported inference source.
-4. Mobile and keyboard interaction QA.
+4. Automated mobile/desktop and WCAG 2.1 AA scans are green; **manual** keyboard screen-reader/browser testing and actual responsive design review remain mandatory.
 5. Public working demo and open-source repository only once reviewed; complete demo video, rules and disclosure.
 
 No production deployment, paid billing activation or GitHub main merge should occur before the user has reviewed those gates.
