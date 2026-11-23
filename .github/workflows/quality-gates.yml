@@ -2,9 +2,9 @@ name: MatchMind quality gates
 
 on:
   push:
-    branches: [main]
+    branches: [main, 'feat/**']
   pull_request:
-    branches: [main]
+    branches: [main, 'feat/**']
 
 permissions:
   contents: read
