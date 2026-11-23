@@ -343,7 +343,7 @@ function App() {
 
           <div className="two-col">
             <section className="panel" id="notebook"><div className="panel-title"><div><span className="overline">THE INPUT</span><h2>Touchline notebook</h2><p>A simple record of what actually happened.</p></div><span className="counter">{events.length}/50</span></div>
-              <div className="notebook-tools" aria-label="Find observations">
+              <div className="notebook-tools" role="group" aria-label="Find observations">
                 <label htmlFor="observation-search"><Search size={14}/> Search notes
                   <input id="observation-search" type="search" value={searchQuery} onChange={e=>setSearchQuery(e.target.value)}
                     placeholder="Minute, event or keyword" maxLength={100}/>
