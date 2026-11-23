@@ -161,3 +161,8 @@ html{scroll-padding-top:20px}
   .stat-foot{line-height:1.5}
   .match-notice{line-height:1.55}
 }
+
+/* Keep the AI interaction column above adjacent notebook hit areas at desktop widths. */
+.two-col>.panel{position:relative;min-width:0}
+.two-col>.ai-panel{z-index:1}
+.timeline .event .icon-button{flex:0 0 28px;max-width:28px;position:relative}
