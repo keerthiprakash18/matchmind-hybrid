@@ -88,3 +88,23 @@ button:not(:disabled):active{transform:scale(.99)}
 .privacy-confirm input{margin-top:1px;accent-color:#2257ed;width:18px;height:18px;flex-shrink:0}
 .privacy-confirm span{flex:1}
 @media(max-width:570px){.cloud-privacy{margin:12px 0;padding:13px}.privacy-confirm{font-size:11px}}
+
+
+/* Evidence-led coaching signals: independent from generative text. */
+.signal-section{margin:24px 0 19px}
+.signal-section-head{display:flex;justify-content:space-between;gap:15px;align-items:end;margin-bottom:14px}
+.signal-section-head h2{margin:7px 0 0;font-size:23px;letter-spacing:-.6px;font-weight:800}
+.signal-method{display:inline-flex;gap:7px;align-items:center;font-size:10px;font-weight:750;color:#477569;background:#eff8f3;border:1px solid #dcefe3;padding:8px 11px;border-radius:999px;white-space:nowrap}
+.signal-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.signal-card{border:1px solid #dfe6f2;background:#fff;border-radius:14px;padding:20px 19px;min-height:190px;display:flex;flex-direction:column;gap:7px;box-shadow:0 5px 22px rgba(17,34,74,.025)}
+.signal-card.watch{border-top:3px solid #d6a04a}
+.signal-card.positive{border-top:3px solid #408f7a}
+.signal-card-top{display:flex;gap:8px;align-items:center;justify-content:space-between;color:#8090a8}
+.signal-card-top svg{color:#355edd}
+.signal-card-top span{font-size:10px;font-weight:750;white-space:nowrap}
+.signal-card h3{font-size:15px;letter-spacing:-.35px;color:#22314d;margin:8px 0 0}
+.signal-card p{color:#6c788e;font-size:11px;line-height:1.65;margin:0 0 8px}
+.signal-card small{margin-top:auto;font-size:10px;font-weight:800;color:#4d69a7}
+.signal-empty{padding:20px;border:1px dashed #d2dded;border-radius:12px;color:#6b7a90;font-size:12px;background:#fff}
+@media(max-width:930px){.signal-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:600px){.signal-section-head{align-items:flex-start;flex-direction:column}.signal-section-head h2{font-size:21px}.signal-grid{grid-template-columns:1fr}.signal-card{min-height:0}}
