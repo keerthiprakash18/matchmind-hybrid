@@ -94,6 +94,8 @@ function App() {
   const ready = isFirebaseConfigured();
 
 
+  const resetNotebookFilters = () => {setSearchQuery('');setTeamFilter('All');setTypeFilter('All');};
+
   const invalidateResult = (revokeCloudConsent = true) => {
     generationVersion.current += 1;
     // Consent is specific to the observations in the current request.
@@ -116,7 +118,7 @@ function App() {
       if(!saved){setSessionStatus('No saved session found in this tab');return;}
       const session=validateSession(JSON.parse(saved));
       setHome(session.home);setAway(session.away);
-      setEvents(session.events as GameEvent[]);setLastDeleted(null);setEditingId(null);setEditDraft(null);invalidateResult();
+      setEvents(session.events as GameEvent[]);setLastDeleted(null);setEditingId(null);setEditDraft(null);resetNotebookFilters();invalidateResult();
       setSessionStatus('Saved session restored');
     } catch {setSessionStatus('Saved session invalid — current events preserved');}
   };
@@ -129,7 +131,7 @@ function App() {
     setHome('Our team');
     setAway('Opposition');
     setEvents([]);
-    setLastDeleted(null);setEditingId(null);setEditDraft(null);
+    setLastDeleted(null);setEditingId(null);setEditDraft(null);resetNotebookFilters();
     setNewEvent({...defaults});
     invalidateResult();
     setSessionStatus('Blank match · Ready to log');
@@ -140,7 +142,7 @@ function App() {
     setHome('Eastport FC');
     setAway('Northbridge');
     setEvents(initialEvents.map(e=>({...e})));
-    setLastDeleted(null);setEditingId(null);setEditDraft(null);
+    setLastDeleted(null);setEditingId(null);setEditDraft(null);resetNotebookFilters();
     setNewEvent({...defaults});
     invalidateResult();
     setSessionStatus('Fictional demo restored · Not saved');
@@ -151,7 +153,7 @@ function App() {
     let storageCleared = true;
     try { sessionStorage.removeItem(SESSION_KEY); }
     catch { storageCleared = false; }
-    setEvents([]);setLastDeleted(null);setEditingId(null);setEditDraft(null);invalidateResult();
+    setEvents([]);setLastDeleted(null);setEditingId(null);setEditDraft(null);resetNotebookFilters();invalidateResult();
     setSessionStatus(storageCleared ? 'Notes and saved session cleared' : 'Notes cleared from the screen, but saved browser storage could not be removed. Check browser settings.');
   };
   const downloadText = (filename:string,body:string,mime:string) => {
@@ -177,7 +179,7 @@ function App() {
       const session=importSessionJson(await file.text());
       if (!window.confirm('Replace current unsaved notes with the imported session? Saved tab data will remain unchanged.')) return;
       setHome(session.home);setAway(session.away);setEvents(session.events as GameEvent[]);
-      setEditingId(null);setEditDraft(null);setLastDeleted(null);
+      setEditingId(null);setEditDraft(null);setLastDeleted(null);resetNotebookFilters();
       invalidateResult();
       setSessionStatus('Imported '+session.events.length+' validated observations · No upload');
     } catch {
@@ -217,7 +219,7 @@ function App() {
     setLastDeleted(null);invalidateResult();
     setSessionStatus('Last deleted observation restored');
   };
-  const downloadBrief=()=>{downloadText('matchmind-coaching-brief.md',coachingBrief(),'text/markdown;charset=utf-8');setExportStatus('Coaching brief downloaded');};
+  const downloadBrief=()=>{downloadText('matchmind-coaching-brief.md',coachingBrief(),'text/markdown;charset=utf-8');setExportStatus('Coaching brief downloaded');setSessionStatus('Coaching brief downloaded · Review evidence before acting');};
   const downloadCsv=()=>{downloadText('matchmind-observations.csv',exportEventsCsv(events),'text/csv;charset=utf-8');setExportStatus('Observations exported to CSV');};
   const copyBrief=async()=>{
     try{await navigator.clipboard.writeText(coachingBrief());setExportStatus('Coaching brief copied');}
@@ -245,7 +247,7 @@ function App() {
       note: newEvent.note.trim().slice(0, 240)
     };
     setEvents((prev) => [...prev, event].sort((a, b) => a.minute - b.minute));
-    setLastDeleted(null);setEditingId(null);setEditDraft(null);
+    setLastDeleted(null);setEditingId(null);setEditDraft(null);resetNotebookFilters();
     setNewEvent((prev) => ({ ...prev, note: '', minute: Math.min(prev.minute + 1, 120) }));
     invalidateResult();
   };
