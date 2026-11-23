@@ -53,15 +53,4 @@ jobs:
       - name: Install locked dependency tree
         run: npm ci
       - name: Production dependency audit
-        run: npm audit --omit=dev --audit-level=high
-
-  dependency-metadata:
-    name: Dependency patch metadata (temporary audit investigation)
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    steps:
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '22'
-      - name: Inspect public patched gRPC package
-        run: npm view @grpc/grpc-js@1.13.6 version dist.integrity dist.tarball dependencies --json
+        run: npm audit --audit-level=high
