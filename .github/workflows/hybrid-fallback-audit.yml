@@ -6,6 +6,7 @@ on:
     branches: [main, 'quality/**']
     paths:
       - .github/workflows/hybrid-fallback-audit.yml
+      - tests/production-fallback.spec.mjs
 
 permissions:
   contents: read
