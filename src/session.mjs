@@ -1,4 +1,6 @@
 /** Browser-tab session helpers. No storage is used without user action. */
+import { summarize } from './logic.mjs';
+import { deriveSignals } from './signals.mjs';
 export const SESSION_KEY = 'matchmind-session-v2';
 export const MAX_EVENTS = 50;
 export const MAX_NOTE_LENGTH = 240;
@@ -38,7 +40,20 @@ export function exportEventsCsv(events) {
 export function exportBrief({home,away,events,goal,output,source}) {
   const lines=['# MatchMind · Coaching brief','','Fixture: '+safeText(home,42)+' vs '+safeText(away,42),'Focus: '+safeText(goal,40),'Inference source: '+(source||'Not verified'),'Data provenance: User-entered notes, not a live match feed.','','## Logged events',''];
   for(const event of events) lines.push(event.minute+"' · "+event.team+" · "+event.type+": "+safeText(event.note,240));
-  lines.push('','## AI analysis','',output||'Not generated.','','AI suggestions are not verified match facts. Coach review required.','');
+  const counts=summarize(events);
+  lines.push('','## Recorded event counts (not live match statistics)','',
+    'Our shots: '+counts.shots,
+    'Our big chances: '+counts.bigChances,
+    'Our recoveries: '+counts.recoveries,
+    'Opponent threats logged: '+counts.opponentThreats,
+    '',
+    '## Evidence-led coaching review questions','');
+  const review=deriveSignals(events);
+  if(!review.length) lines.push('Not enough logged events for rule-based review questions.');
+  for(const signal of review) {
+    lines.push('- '+safeText(signal.title,100)+' ('+signal.minutes.join("', ")+"'): "+safeText(signal.detail,300));
+  }
+  lines.push('','## AI analysis','',output||'Not generated. Your observation summary and review questions above do not require AI.','','AI suggestions are not verified match facts. Coach review required.','');
   return lines.join('\n');
 }
 export function eventDistribution(events) {
