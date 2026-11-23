@@ -3,3 +3,44 @@
 @media(max-width:1160px){.app-shell{grid-template-columns:76px 1fr}.sidebar{padding:24px 10px}.brand{margin:0 auto 45px}.brand>div:last-child,.sidebar-caption,.nav-item:not(.active),.nav-item.active{font-size:0}.nav-item{justify-content:center;padding:13px 10px}.nav-item svg{flex-shrink:0}.nav-new,.sidebar-footer{display:none}.topbar{padding:0 25px}.content{padding:30px 24px}.hero{padding:35px}.hero-badge{min-width:175px}.two-col{grid-template-columns:1fr 1fr}.panel{padding:20px}.match-line{grid-template-columns:1fr 90px 1fr;gap:12px}.form-row{grid-template-columns:60px 90px 1fr}}
 @media(max-width:850px){.two-col{grid-template-columns:1fr}.architecture{grid-template-columns:1fr}.hero-badge{display:none}.stat-grid{grid-template-columns:repeat(2,1fr)}.top-right{font-size:0}.top-right .status-dot{display:none}}
 @media(max-width:570px){.app-shell{display:block}.sidebar{display:none}.content{padding:18px 15px}.topbar{height:56px;padding:0 18px}.hero{padding:28px 24px}.hero h1{font-size:42px}.hero p{font-size:12px}.section-label{margin:26px 0 13px}.section-label h2{font-size:18px}.tag{font-size:7px}.match-card{padding:19px}.match-meta{font-size:7px}.match-line{grid-template-columns:1fr 45px 1fr;gap:5px}.match-line>div:not(.vs){display:grid;justify-items:center;text-align:center;gap:7px}.match-line strong{font-size:11px}.team-monogram{width:39px;height:39px}.vs{font-size:20px}.vs span{font-size:7px}.match-notice{font-size:9px}.stat-grid{gap:8px}.stat-card{padding:18px 14px}.stat-top{font-size:10px}.stat-card strong{font-size:31px}.stat-foot{font-size:9px}.mode-grid{gap:5px}.mode{padding:13px 4px}.mode.selected{padding:12px 3px}.mode small{font-size:8px}.form-row{grid-template-columns:57px 90px 1fr;gap:5px}.architecture{padding:23px 15px}.architecture-flow{gap:2px}.architecture-flow>div strong{font-size:9px}.architecture-flow>div span{font-size:8px}footer{font-size:8px;display:block}footer span:last-child{margin-top:10px}}
+
+
+/* V0.2 — coaching operations, event evidence and accessible interaction */
+:root{--ink:#17243e;--cobalt:#2355f1;--hairline:#e7eaf1;--card:#ffffff}
+:focus-visible{outline:3px solid #86a8ff;outline-offset:3px}
+button{transition:background-color .16s ease,border-color .16s ease,transform .16s ease}
+button:not(:disabled):active{transform:scale(.99)}
+.team-name-input{width:min(100%,190px);min-width:0;padding:7px 8px;border:1px solid transparent;border-radius:8px;background:transparent;font-size:clamp(12px,1vw,17px);font-weight:800;color:var(--ink);text-overflow:ellipsis}
+.team-name-input:hover,.team-name-input:focus{background:#f7f9ff;border-color:#c8d5fb}
+.away-team-input{text-align:right}
+.ops-panel,.insight-panel{margin-top:17px;border:1px solid var(--hairline);background:var(--card);border-radius:16px;box-shadow:0 7px 24px rgba(18,34,65,.025)}
+.ops-panel{padding:22px 26px}
+.ops-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:20px}
+.ops-heading>div{display:grid;gap:7px}
+.ops-heading strong{font:600 24px/1.2 'Fraunces',Georgia,serif;letter-spacing:-.5px}
+.ops-heading small{font-size:11px;color:#657389}
+.privacy-tag{display:inline-flex;align-items:center;gap:6px;white-space:nowrap;background:#ebf7f2;border:1px solid #cfebde;color:#27775c;border-radius:999px;padding:8px 11px;font-size:10px;font-weight:700}
+.ops-buttons{display:flex;flex-wrap:wrap;gap:9px;margin-top:20px}
+.ops-buttons button,.export-actions button{display:inline-flex;justify-content:center;align-items:center;gap:7px;background:#f6f8fc;border:1px solid #d9e1ed;border-radius:9px;padding:11px 13px;color:#35435c;font-weight:800;font-size:11px;min-height:40px}
+.ops-buttons button:hover,.export-actions button:hover{border-color:#9fb8fd;background:#eef3ff}
+.ops-buttons .danger-button{color:#b04e54}
+.insight-panel{padding:24px 28px;display:grid;grid-template-columns:minmax(180px,.8fr) minmax(240px,1.2fr);gap:38px;align-items:center}
+.insight-panel h3{font:600 26px/1.2 'Fraunces',Georgia,serif;letter-spacing:-.5px;margin:10px 0}
+.insight-panel p{font-size:11px;line-height:1.6;color:#7f889a;max-width:340px}
+.distribution{display:flex;align-items:end;gap:16px;height:142px}
+.dist-item{display:flex;flex:1;min-width:0;align-items:center;flex-direction:column;gap:6px;height:100%;justify-content:flex-end}
+.dist-count{color:#3356a2;font-size:11px;font-weight:800}
+.dist-track{background:#edf1fa;border-radius:8px 8px 2px 2px;height:104px;min-height:20px;width:100%;max-width:72px;display:flex;align-items:end;overflow:hidden}
+.dist-fill{width:100%;background:#3864ee;border-radius:8px 8px 2px 2px;min-height:4px;transition:height .4s ease}
+.dist-item small{font-size:10px;font-weight:700;white-space:nowrap;color:#6c7790}
+.device-readiness{display:flex;align-items:center;gap:8px;padding:10px 12px;margin:14px 0 4px;background:#f7f9fd;border-radius:8px;font-size:11px;color:#526783;line-height:1.5}
+.device-readiness svg{flex-shrink:0;color:#3665de}
+.export-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:18px}
+.export-actions button{background:#fff;color:#254fbe}
+.export-status{display:block;min-height:10px;margin-top:9px;font-size:10px;color:#526b9f}
+.ai-result .export-actions{border-top:1px solid #ccd8f2;padding-top:14px}
+.hero:after{content:'';position:absolute;right:-95px;bottom:-170px;width:450px;height:450px;border:1px solid rgba(192,214,255,.07);border-radius:50%;pointer-events:none}
+.hero:before{content:'';position:absolute;right:-65px;bottom:-130px;width:355px;height:355px;border:1px solid rgba(192,214,255,.08);border-radius:50%;pointer-events:none}
+@media(max-width:870px){.insight-panel{grid-template-columns:1fr;gap:16px}.distribution{max-width:520px}}
+@media(max-width:570px){.ops-panel,.insight-panel{padding:18px}.ops-heading{flex-wrap:wrap}.ops-heading strong{font-size:21px}.privacy-tag{font-size:9px}.ops-buttons{display:grid;grid-template-columns:1fr 1fr}.ops-buttons button{padding:10px 8px;font-size:10px}.team-name-input{text-align:center;font-size:11px;max-width:115px;padding:4px 2px}.distribution{gap:8px}.dist-item small{font-size:9px}.hero:after,.hero:before{display:none}.export-actions{display:grid;grid-template-columns:1fr 1fr}}
+@media(prefers-reduced-motion:reduce){*,*:before,*:after{scroll-behavior:auto!important;animation-duration:.01ms!important;transition-duration:.01ms!important}}
