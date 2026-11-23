@@ -11,7 +11,7 @@ import { SESSION_KEY, validateSession, exportEventsCsv, exportBrief, eventDistri
 import { filterObservations } from './notebook.mjs';
 import { friendlyInferenceError } from './errors.mjs';
 import { inferenceLabel } from './inferenceSource.mjs';
-import { parseReportBlocks } from './reportFormat.mjs';
+import { structureCoachingReport, groupReportBlocks } from './reportFormat.mjs';
 import { analyzeEvidence } from './evidence.mjs';
 import { deriveSignals } from './signals.mjs';
 import './style.css';
@@ -74,6 +74,7 @@ function App() {
   const distribution = useMemo(() => eventDistribution(events), [events]);
   const topDistribution = Math.max(1,...distribution);
   const evidence = useMemo(() => analyzeEvidence(output,events), [output,events]);
+  const reportSections = useMemo(() => structureCoachingReport(output), [output]);
   const signals = useMemo(() => deriveSignals(events), [events]);
   const lastLoggedMinute = events.length ? Math.max(...events.map(e=>e.minute)) : null;
   useEffect(() => {
@@ -438,11 +439,27 @@ function App() {
               {progress !== null && state === 'working' && mode !== 'cloud' && <p className="download-progress">On-device model download: {progress}% (cloud may be used while downloading)</p>}
               {state === 'error' && <div className="error" role="alert">{error}</div>}
               {state === 'working' && <p className="analysis-status" role="status" aria-live="polite">Generating an evidence-linked report. The source will be displayed only after the Firebase SDK returns it.</p>}
-              {state === 'done' && <div id="ai-output" className="ai-result" aria-label="Generated analysis" role="region"><div className="result-heading"><strong><CheckCircle2 size={17}/> Analysis generated</strong><span className="source-pill">{inferenceLabel(source)}</span></div><div className="result-body formatted-report">{parseReportBlocks(output).map((block, index) =>
-                block.kind === 'heading'
-                  ? <h3 key={index}>{renderEmphasis(block.text)}</h3>
-                  : <p className={block.kind === 'bullet' ? 'report-bullet' : block.kind === 'numbered' ? 'report-numbered' : 'report-paragraph'} key={index}>{block.kind === 'bullet' ? '• ' : ''}{renderEmphasis(block.text)}</p>
-              )}</div>
+              {state === 'done' && <div id="ai-output" className="ai-result" aria-label="Generated analysis" role="region"><div className="result-heading"><strong><CheckCircle2 size={17}/> Analysis generated</strong><span className="source-pill">{inferenceLabel(source)}</span></div><div className="report-introduction">
+                  <span>COACHING INTELLIGENCE</span>
+                  <h3>{goal}</h3>
+                  <p>Analysis of {events.length} logged observations · Suggestions require coach review.</p>
+                </div>
+                <div className="result-body formatted-report" aria-label="Structured coaching report">
+                  {reportSections.map((section, index) => <section className={'report-section section-'+section.key} key={index} aria-label={section.title}>
+                    <div className="report-section-heading"><span className="report-section-index">{String(index+1).padStart(2,'0')}</span><h3>{section.title}</h3></div>
+                    <div className="report-section-content">
+                      {groupReportBlocks(section.blocks).map((block, itemIndex) =>
+                        block.kind === 'bullets'
+                          ? <ul className="report-list" key={itemIndex}>{block.items.map((item: string,j: number)=><li key={j}>{renderEmphasis(item)}</li>)}</ul>
+                          : block.kind === 'ordered'
+                            ? <ol className="report-list" key={itemIndex}>{block.items.map((item: string,j: number)=><li key={j}>{renderEmphasis(item)}</li>)}</ol>
+                            : block.kind === 'heading'
+                              ? <h4 key={itemIndex}>{renderEmphasis(block.text)}</h4>
+                              : <p key={itemIndex}>{renderEmphasis(block.text)}</p>
+                      )}
+                    </div>
+                  </section>)}
+                </div>
                 <div className="evidence-receipt" aria-label="Inference and evidence audit" role="region">
                   <div className="evidence-receipt-title"><ShieldCheck size={16}/><strong>Inference & evidence receipt</strong></div>
                   <div className="evidence-metrics">
