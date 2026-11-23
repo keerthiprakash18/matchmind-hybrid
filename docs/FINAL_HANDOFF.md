@@ -17,7 +17,7 @@
 
 ## Honest remaining blockers
 
-- **GitHub repository visibility remains PRIVATE.** Owner must switch this existing repo to Public at https://github.com/keerthiprakash18/matchmind-hybrid/settings. Before publication, confirm earlier exposed App Check debug tokens are revoked and no credentials appear in any commit or screenshots. No GitHub repository-settings write action is available in the connected first-party GitHub integration.
+- **GitHub repository is PUBLIC — verified on 2026-11-23.** The existing repo includes MIT LICENSE and public source. Old App Check debug tokens that appeared in screenshots should be revoked; do not confuse the public Web site key with a private token.
 - **Public YouTube video remains missing.** Record actual browser footage of real Cloud and ON_DEVICE responses, with a <=3-minute English narration or English subtitles. Never fabricate Gemini responses or route badges.
 - **Devpost entry has NOT been submitted.** Submission requires the entrant to sign into Devpost, accept contest terms, supply a real YouTube URL and verify eligibility; do not claim completion.
 - **Hybrid → Cloud fallback remains UNVERIFIED.** Separate Cloud-only success proves cloud inference but not fallback. A controlled production test file and workflow exist in `.github/workflows/hybrid-fallback-audit.yml`; its real-world result has not been verified yet.
@@ -25,7 +25,7 @@
 
 ## Required order
 1. Revoke screenshot-exposed Firebase App Check debug tokens; leave production App Check enforcement enabled and Vercel debug flag false.
-2. Make GitHub repo public and check MIT license is recognized at the top.
+2. GitHub repo is now public and an MIT LICENSE file exists. Confirm GitHub recognizes MIT license in the repository UI.
 3. Record/edit actual demonstration video from the current live HTTPS site; use `docs/FINAL_DEMO_NARRATION.md` and keep the duration <= 3 minutes.
 4. Upload the video to YouTube as Public. Provide correct Devpost URL, GitHub URL and video URL.
 5. In Devpost, select Web/Chrome, paste sections from `docs/DEVPOST_READY_COPY.md`, confirm the original-work and eligibility rules, and submit before 2026-11-30 14:00 PST / 2026-12-01 03:30 IST.
