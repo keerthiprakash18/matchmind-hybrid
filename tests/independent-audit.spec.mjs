@@ -182,7 +182,8 @@ test('AUDIT: empty time periods must have zero-height bars', async ({page})=>{
   expect(barSizes).toEqual(Array.from({length:4},()=>({declared:'0%',measured:0})));
   await page.getByPlaceholder('e.g. Left side exposed during transition...').fill('One logged event at minute 12.');
   await page.getByRole('button',{name:'Log observation'}).click();
+  // Non-empty bars animate from 0; poll for actual layout after the transition.
+  await expect.poll(async()=>page.locator('.dist-fill').first().evaluate(el=>Math.round(el.getBoundingClientRect().height)),{timeout:3000}).toBeGreaterThan(0);
   const sizes=await page.locator('.dist-fill').evaluateAll(nodes=>nodes.map(el=>Math.round(el.getBoundingClientRect().height)));
-  expect(sizes[0]).toBeGreaterThan(0);
   expect(sizes.slice(1)).toEqual([0,0,0]);
 });
