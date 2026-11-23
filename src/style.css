@@ -254,3 +254,14 @@ html{scroll-padding-top:20px}
   .edit-form :is(input,select,textarea){font-size:12px;padding:7px}
   .ops-explainer,.filtered-count{font-size:11px}
 }
+
+/* Discoverable local-model setup guide, with native keyboard-operable details. */
+.device-guide{margin:3px 0 14px;padding:10px 13px;background:#fff;border:1px solid #d9e4f5;
+  border-radius:9px;color:#4a5974}
+.device-guide summary{cursor:pointer;font-size:11px;font-weight:800;color:#2b4e90;line-height:1.5}
+.device-guide summary:focus-visible{outline:3px solid #8dacf8;outline-offset:3px}
+.device-guide p{margin:10px 0;font-size:11px;line-height:1.7;color:#52647d}
+.device-guide a{display:inline-block;margin:3px 0 6px;color:#1d52ba;text-decoration:underline;
+  font-size:11px;font-weight:800;text-underline-offset:3px}
+.device-guide a:focus-visible{outline:3px solid #8dacf8;outline-offset:3px}
+@media(max-width:570px){.device-guide summary,.device-guide p,.device-guide a{font-size:12px}}
