@@ -166,3 +166,26 @@ html{scroll-padding-top:20px}
 .two-col>.panel{position:relative;min-width:0}
 .two-col>.ai-panel{z-index:1}
 .timeline .event .icon-button{flex:0 0 28px;max-width:28px;position:relative}
+
+
+/* Final 320–570px readability pass after reviewing real CI screenshots. */
+@media(max-width:570px){
+  .hero p{font-size:13px;line-height:1.72}
+  .hero-no-login{font-size:11px}
+  .match-meta,.match-notice,.stat-foot,.tag{font-size:10px}
+  .stat-top{font-size:11px}
+  .stat-card strong{font-size:34px}
+  .ops-heading small,.insight-panel p,.signal-card p,.signal-card small{
+    font-size:12px;line-height:1.6}
+  .ops-buttons button{font-size:11px;min-height:44px}
+  .event-body p{font-size:12px;line-height:1.65}
+  .event-top strong{font-size:12px}
+  .event-form label,.focus-box label{font-size:10px}
+  .event-form :is(input,textarea,select),.focus-box select{font-size:13px}
+  .mode strong,.mode small{font-size:11px;line-height:1.35}
+  .mode{min-height:126px}
+  .privacy-confirm,.cloud-privacy p,.device-readiness{font-size:12px}
+  .mobile-nav a{font-size:10px}
+  .architecture p,.architecture-flow span{font-size:11px}
+  .architecture-flow strong{font-size:11px}
+}
