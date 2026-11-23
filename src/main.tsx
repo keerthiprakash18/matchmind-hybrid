@@ -108,7 +108,8 @@ function App() {
     } catch {setSessionStatus('Saved session invalid — current events preserved');}
   };
   const exploreDemo = () => {
-    document.getElementById('ai-studio')?.scrollIntoView({behavior:'smooth',block:'start'});
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    document.getElementById('ai-studio')?.scrollIntoView({behavior:reducedMotion?'auto':'smooth',block:'start'});
   };
   const startBlankMatch = () => {
     if (!window.confirm('Start a blank match? Unsaved observations in this tab will be replaced. Your saved tab session can still be restored.')) return;
@@ -202,6 +203,7 @@ function App() {
 
   return (
     <div className="app-shell">
+      <a className="skip-link" href="#main-content">Skip to match workspace</a>
       <aside className="sidebar">
         <div className="brand"><div className="brand-icon"><Activity size={22} strokeWidth={2.7} /></div><div><strong>MATCHMIND</strong><small>HYBRID INTELLIGENCE</small></div></div>
         <p className="sidebar-caption">WORKSPACE</p>
@@ -214,8 +216,8 @@ function App() {
         <div className="sidebar-footer"><div className="private-card"><LockKeyhole size={19}/><strong>Designed for privacy</strong><p>Observations remain in this tab unless you explicitly save a tab session. Cloud analysis sends the notes to Firebase AI Logic. No database is connected.</p></div><span>PROJECT 01 · #BuildHybridAI 2026</span></div>
       </aside>
 
-      <main>
-        <header className="topbar"><a className="mobile-brand" href="#overview"><Activity size={17}/> MATCHMIND</a><div className="breadcrumb">Workspace <span>/</span> Match intelligence</div><div className="top-right"><span className="status-dot"/> Prototype workspace <span className="avatar">MM</span></div></header>
+      <main id="main-content" tabIndex={-1}>
+        <header className="topbar"><a className="mobile-brand" href="#overview"><Activity size={17}/> MATCHMIND</a><div className="breadcrumb">Workspace <span>/</span> Match intelligence</div><div className="top-right"><span className="status-dot" aria-hidden="true"/> Demonstration workspace <span className="avatar">MM</span></div></header>
         <div className="content">
           <section className="hero" id="overview"><div className="eyebrow"><span className="eyebrow-line"/> THE NEW PLAYBOOK</div><div className="hero-row"><div><h1>Better decisions.<br/><em>Every match.</em></h1><p>Log what you see. Find the patterns that matter. Get tactical clarity with AI that prefers to run on your device.</p>
             <div className="hero-actions">
@@ -269,13 +271,13 @@ function App() {
             </section>
 
             <section className="panel ai-panel" id="ai-studio"><div className="panel-title"><div><span className="overline blue-text">THE INTELLIGENCE</span><h2>Hybrid AI studio <Sparkles size={21}/></h2><p>Turn raw observations into coaching decisions.</p></div></div>
-              <div className="mode-header"><strong>INFERENCE ENGINE</strong><span className={ready ? 'ready-badge' : 'not-ready-badge'}>{ready ? 'FIREBASE CONFIGURED' : 'SETUP REQUIRED'}</span></div>
+              <div className="mode-header"><strong>INFERENCE ENGINE</strong><span className={ready ? 'ready-badge' : 'not-ready-badge'}>{ready ? 'CONFIGURATION PRESENT' : 'SETUP REQUIRED'}</span></div>
               <div className="mode-grid" role="group" aria-label="AI inference preference">
                 <button aria-pressed={mode==='hybrid'} className={'mode '+(mode==='hybrid'?'selected':'')} onClick={()=>{setMode('hybrid');invalidateResult();}}><Zap size={19}/><strong>Hybrid</strong><small>Device first, cloud fallback</small></button>
                 <button aria-pressed={mode==='local'} className={'mode '+(mode==='local'?'selected':'')} onClick={()=>{setMode('local');invalidateResult();}}><Cpu size={19}/><strong>On-device</strong><small>Local model only</small></button>
                 <button aria-pressed={mode==='cloud'} className={'mode '+(mode==='cloud'?'selected':'')} onClick={()=>{setMode('cloud');invalidateResult();}}><Cloud size={19}/><strong>Cloud</strong><small>Remote model only</small></button>
               </div>
-              <div className="device-readiness"><Cpu size={15}/><span>{deviceStatus}</span></div>
+              <div className="device-readiness" role="status" aria-live="polite"><Cpu size={15}/><span>{deviceStatus}. Browser support is advisory; verify the actual inference route below.</span></div>
               <div className="focus-box"><label htmlFor="goal">WHAT DO YOU NEED?</label><select id="goal" value={goal} onChange={(e)=>{setGoal(e.target.value as Goal);invalidateResult();}}><option>Halftime briefing</option><option>Tactical adjustments</option><option>Training priorities</option></select><p>AI suggestions use only logged observations. The model may still be wrong; the coach makes the final decision.</p></div>
               <div className="cloud-privacy" role="note">
                 <LockKeyhole size={17} aria-hidden="true"/>
@@ -286,10 +288,11 @@ function App() {
                   {mode !== 'local' && <label className="privacy-confirm"><input type="checkbox" checked={privacyAcknowledged} onChange={e=>setPrivacyAcknowledged(e.target.checked)}/><span>I understand that this analysis may use cloud inference.</span></label>}
                 </div>
               </div>
-              <button className="button-main" onClick={analyze} disabled={state==='working'||!events.length||(mode!=='local'&&!privacyAcknowledged)}><Sparkles size={18}/>{state === 'working' ? 'Analyzing observations…' : 'Generate match intelligence'}<ArrowRight size={18}/></button>
+              <button type="button" className="button-main" onClick={analyze} aria-controls="ai-output" aria-busy={state==='working'} disabled={state==='working'||!events.length||(mode!=='local'&&!privacyAcknowledged)}><Sparkles size={18}/>{state === 'working' ? 'Analyzing observations…' : 'Generate match intelligence'}<ArrowRight size={18}/></button>
               {progress !== null && state === 'working' && mode !== 'cloud' && <p className="download-progress">On-device model download: {progress}% (cloud may be used while downloading)</p>}
               {state === 'error' && <div className="error" role="alert">{error}</div>}
-              {state === 'done' && <div className="ai-result"><div className="result-heading"><strong><CheckCircle2 size={17}/> Analysis generated</strong><span className="source-pill">{inferenceLabel(source)}</span></div><div className="result-body formatted-report">{parseReportBlocks(output).map((block, index) =>
+              {state === 'working' && <p className="analysis-status" role="status" aria-live="polite">Generating an evidence-linked report. The source will be displayed only after the Firebase SDK returns it.</p>}
+              {state === 'done' && <div id="ai-output" className="ai-result" aria-label="Generated analysis" role="region"><div className="result-heading"><strong><CheckCircle2 size={17}/> Analysis generated</strong><span className="source-pill">{inferenceLabel(source)}</span></div><div className="result-body formatted-report">{parseReportBlocks(output).map((block, index) =>
                 block.kind === 'heading'
                   ? <h3 key={index}>{renderEmphasis(block.text)}</h3>
                   : <p className={block.kind === 'bullet' ? 'report-bullet' : block.kind === 'numbered' ? 'report-numbered' : 'report-paragraph'} key={index}>{block.kind === 'bullet' ? '• ' : ''}{renderEmphasis(block.text)}</p>
@@ -311,7 +314,7 @@ function App() {
             </section>
           </div>
 
-          <section className="architecture" id="how-it-works"><div><span className="overline">BUILT FOR HYBRID</span><h2>Intelligence that meets you <em>where you are.</em></h2><p>Local when supported. Cloud when needed. Clear about which one actually answered.</p></div><div className="architecture-flow"><div><Cpu size={22}/><strong>Gemini Nano 4</strong><span>On your Chrome desktop</span></div><ArrowRight className="flow-arrow" size={22}/><div><Activity size={22}/><strong>Firebase AI Logic</strong><span>Routes every request</span></div><ArrowRight className="flow-arrow" size={22}/><div><Cloud size={22}/><strong>Gemini Cloud</strong><span>Fallback when unavailable</span></div></div></section>
+          <section className="architecture" id="how-it-works"><div><span className="overline">BUILT FOR HYBRID</span><h2>Intelligence that meets you <em>where you are.</em></h2><p>Local when supported. Cloud when needed. Clear about which one actually answered.</p></div><div className="architecture-flow"><div><Cpu size={22}/><strong>Gemini Nano</strong><span>On your Chrome desktop</span></div><ArrowRight className="flow-arrow" size={22}/><div><Activity size={22}/><strong>Firebase AI Logic</strong><span>Routes every request</span></div><ArrowRight className="flow-arrow" size={22}/><div><Cloud size={22}/><strong>Gemini Cloud</strong><span>Fallback when unavailable</span></div></div></section>
           <footer><span>© 2026 MATCHMIND · DEMONSTRATION PROTOTYPE</span><span><WifiOff size={15}/> Offline requires a supported on-device model <CircleHelp size={14}/></span></footer>
         </div>
         <nav className="mobile-nav" aria-label="Mobile navigation">
