@@ -3,7 +3,7 @@ name: Production Hybrid fallback audit (one live request)
 on:
   workflow_dispatch:
   push:
-    branches: [main]
+    branches: [main, 'quality/**']
     paths:
       - .github/workflows/hybrid-fallback-audit.yml
 
