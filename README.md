@@ -2,7 +2,7 @@
 
 **Match observations → evidence-linked coaching decisions.** A football analysis workspace powered by Firebase AI Logic hybrid inference. The goal is to make useful tactical help available on compatible Chrome devices, with a Firebase cloud option when on-device inference is not available.
 
-> **Release status:** V0.2 is merged into `main` and deployed to Vercel. User screenshots demonstrate real Cloud, On-device and Hybrid → On-device inference in previously tested builds. A successful Cloud request on an earlier production build was reported. **A real Hybrid → Cloud fallback on the public production site was verified by a headless Chromium GitHub Actions run (2026-11-23, run 45181931811); the newest release's local-device behavior still requires final Chrome desktop verification.** Do not claim universally offline operation.
+> **Release status:** V1 coach-workspace upgrade is being verified against the existing deployed release; merge only after all quality gates are green. User screenshots demonstrate real Cloud, On-device and Hybrid → On-device inference in previously tested builds. A successful Cloud request on an earlier production build was reported. **A real Hybrid → Cloud fallback on the public production site was verified by a headless Chromium GitHub Actions run (2026-11-23, run 45181931811); the newest release's local-device behavior still requires final Chrome desktop verification.** Do not claim universally offline operation.
 
 ## Live project
 
@@ -13,13 +13,13 @@
 
 ## Features
 - Editable fictional fixture labels, synthetic match-event demo and precise event-based statistics.
-- Manual observation timeline, truthful last-recorded minute, event distribution and bounded 50-event notebook.
-- **Evidence-led coaching signals** computed deterministically from logged event types and minutes, independent of generative AI, with explicit non-predictive labeling.
+- Full 50-event notebook with safe inline editing, undo deletion, search and team/event filters. Filtered views never alter the underlying observations used by AI or statistics.
+- **All applicable evidence-led coaching signals** are computed deterministically from logged event types and minutes, independently of generative AI, with explicitly non-predictive labeling.
 - AI focus modes: halftime briefing, tactical adjustments and training priorities.
 - AI inference: **Hybrid**, **On-device only**, **Cloud only** using Firebase AI Logic.
 - SDK-provided inference provenance badge with an **Inference & evidence receipt**: requested mode, actual route, elapsed time, timestamp coverage and unlogged timestamp warning. This is not a guarantee that AI reasoning is accurate.
-- Explicit tab-only save/restore and clear. No backend database or silent persistence.
-- Export CSV (formula injection protected), download Markdown coaching brief and copy report.
+- Explicit browser-tab save/restore and clear, plus bounded validated JSON export/import for continuity between devices. No backend database or silent persistence. Invalid/oversized imports are rejected without losing existing notes.
+- Export CSV (formula injection protected), download Markdown coaching brief **even without AI** (logged counts and deterministic questions included), and copy generated AI reports.
 - Privacy disclosure and **explicit opt-in acknowledgment** before Cloud/Hybrid requests can send match notes to cloud; local-only requires no cloud consent. Accessible controls and safe UI errors do not echo raw API URLs or credentials.
 
 ## Quick start
