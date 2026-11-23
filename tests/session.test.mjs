@@ -22,5 +22,5 @@ test('brief carries provenance and does not misrepresent inference',()=>{
   assert.match(brief,/UNREPORTED/);
 });
 test('timelines count actual logged events only',()=>{
-  assert.deepEqual(eventDistribution([{minute:0},{minute:29},{minute:30},{minute:91},{minute:119}]),[2,1,0,2]);
+  assert.deepEqual(eventDistribution([{minute:0},{minute:29},{minute:30},{minute:91},{minute:119},{minute:120}]),[2,1,0,3]);
 });
