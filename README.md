@@ -1,63 +1,58 @@
-# MatchMind Hybrid — #BuildHybridAI 2026
+# MatchMind Hybrid · #BuildHybridAI 2026
 
-A privacy-aware football observation notebook with **real Firebase AI Logic hybrid inference**. This is a **phase-one starter**, not yet a deployed or Firebase-tested submission.
+**Match observations → evidence-linked coaching decisions.** A football analysis workspace powered by Firebase AI Logic hybrid inference. The goal is to make useful tactical help available on compatible Chrome devices, with a Firebase cloud option when on-device inference is not available.
 
-## The idea
+> **State:** V0.2 candidate on a review branch. The owner has demonstrated real **Cloud**, **On-device**, and **Hybrid → On-device** inference using the Firebase SDK-reported source in Chrome desktop. **Hybrid → Cloud fallback remains unverified** until tested on a browser/device without a local model. Do not describe the project as universally offline-capable.
 
-Grassroots coaches often record tactical observations with unreliable connectivity. MatchMind logs fictional/demo match events in-session and asks Gemini to produce grounded coaching insights, preferring the on-device model when available and falling back to cloud through the **same Firebase AI Logic SDK**. Its interface discloses `response.inferenceSource` (device/cloud), separates observations from recommendations, and never invents match scores.
+## Features
+- Editable fictional fixture labels, synthetic match-event demo and precise event-based statistics.
+- Manual observation timeline, truthful last-recorded minute, event distribution and bounded 50-event notebook.
+- **Evidence-led coaching signals** computed deterministically from logged event types and minutes, independent of generative AI, with explicit non-predictive labeling.
+- AI focus modes: halftime briefing, tactical adjustments and training priorities.
+- AI inference: **Hybrid**, **On-device only**, **Cloud only** using Firebase AI Logic.
+- SDK-provided inference provenance badge with an **Inference & evidence receipt**: requested mode, actual route, elapsed time, timestamp coverage and unlogged timestamp warning. This is not a guarantee that AI reasoning is accurate.
+- Explicit tab-only save/restore and clear. No backend database or silent persistence.
+- Export CSV (formula injection protected), download Markdown coaching brief and copy report.
+- Privacy disclosure and **explicit opt-in acknowledgment** before Cloud/Hybrid requests can send match notes to cloud; local-only requires no cloud consent. Accessible controls and safe UI errors do not echo raw API URLs or credentials.
 
-**Important:** MatchMind is not affiliated with or connected to FC ARENA. All demo data is fictitious. There is no live sports feed, database or upload. The starter does not claim AI results without Firebase setup.
+## Quick start
 
-## Run
+Use Node.js 22 LTS.
 
-Requires Node.js 20+.
-
-```bash
-npm install
-cp .env.example .env   # Windows PowerShell: Copy-Item .env.example .env
+```sh
+npm ci
+cp .env.example .env
+npm test
 npm run dev
 ```
 
-Visit the local URL. The notebook/dashboard work without Firebase. AI analysis requires the Firebase setup below. A correct full build also requires `npm run build` and tests with `npm test`.
+In PowerShell, use `Copy-Item .env.example .env` to create a local environment file. Then open the displayed localhost URL in **Chrome Desktop 139+** if you want to evaluate on-device AI.
 
-## Configure *real* Firebase inference
+### Configure Firebase
+1. Firebase project, Web App, **Firebase AI Logic**, Gemini Developer API, and **App Check** must be configured separately from other applications.
+2. Copy the public Web App config into the corresponding `VITE_FIREBASE_*` keys in local `.env`; put the **public reCAPTCHA Enterprise site key** in `VITE_APPCHECK_SITE_KEY`. Never use service-account keys, private Gemini API keys, or an App Check debug token as a `VITE_` variable.
+3. Local **development only**: set `VITE_ENABLE_APP_CHECK_DEBUG=true`. Register the automatically logged debug token for the matching Web App in Firebase Console. Never share it or use debug mode in production.
+4. Set **production** `VITE_ENABLE_APP_CHECK_DEBUG=false` in the hosting provider. Deploy only after enforcing App Check for the real deployed domain.
 
-1. Create a **new independent Firebase project** at https://console.firebase.google.com/ (not FC ARENA production).
-2. Register a Web app. Go to **AI Services → AI Logic → Get started**, enable the **Gemini Developer API** provider, and confirm **Security → App Check → APIs → Firebase AI Logic** is **Enforced**.
-3. In App Check register the web app with **reCAPTCHA Enterprise**, and put the public site key (NOT the secret key) in `VITE_APPCHECK_SITE_KEY`. Use a real production App Check provider when deploying.
-4. Fill the `VITE_FIREBASE_*` values from Firebase's web-app config in a private `.env`. These are public identifiers by design but should not be confused with secret server credentials. Do **not** commit debug tokens, API secrets, service accounts, or private credentials.
-5. For **localhost only** set `VITE_ENABLE_APP_CHECK_DEBUG=true`. Start the app, click Generate, find the debug token in local browser DevTools, safelist it at **Firebase Console → App Check → Apps → Manage debug tokens**. Never include this token in GitHub, screenshots, video, public logs, or production builds.
-6. For local on-device Gemini Nano, use desktop **Google Chrome 139+** and enable `chrome://flags/#prompt-api-for-gemini-nano-multimodal-input`, restart, and make sure the local model downloads. Hardware constraints apply. The app invokes `initializeDeviceModel` from the click handler. The first run may instead use cloud while the local model downloads.
-7. With **Hybrid** chosen, check the AI result's **actual** `ON_DEVICE` or `IN_CLOUD` indicator. Test **On-device** and **Cloud** separately, and prove both paths in the demo. No platform is advertised as offline-capable unless a real on-device inference test succeeds.
+## Verification
 
-Official docs: https://firebase.google.com/docs/ai-logic/hybrid/web/get-started
+```sh
+npm test
+node scripts/security-gates.mjs
+npm run build
+npm audit --audit-level=high
+```
 
-## Security and truthfulness gates before a public demo
+- Unit tests cover observation validation, prompt boundaries, session schema, CSV injection and error redaction.
+- Browser QA, genuine Chrome on-device inference and real hybrid fallback require device testing. **Do not simulate a local-model result.**
+- The previously vulnerable transitive `@grpc/grpc-js@1.9.16` has been overridden with the patched `1.13.6`, and the lockfile includes a verified registry integrity hash. CI must still validate the full dependency tree and the actual Firebase build. Don't use `npm audit fix --force` blindly.
+- Current app sends observations to cloud only when generating cloud/hybrid inference; it does not upload them to Firestore.
+- Developer tokens shown in older screenshots should be revoked and replaced outside public view.
 
-- Never submit real players' personally identifying information; use synthetic observations. This starter keeps session state in browser memory, not localStorage or Firestore.
-- App Check must remain **enforced**; use genuine reCAPTCHA Enterprise attestation for production. Never publish debug token or enable debug mode on production.
-- Test input length limits, content encoding, prompt-injection resistance, fallback failures, runaway cost controls, quota consumption, Chrome compatibility, keyboard navigation, and mobile overflow.
-- Do not call the app 'offline-first' for unsupported browsers; the offline-only route requires Gemini Nano available and downloaded. Set user expectation clearly.
-- Add integration/E2E tests and real local/cloud smoke test; no simulated analysis may be represented as true AI output.
-- CI: add dependency auditing, secrets scan, typecheck and build, E2E. Verify `git check-ignore .env` and `git ls-files .env` returns nothing. Avoid deploying with unresolved high severity CVEs.
-- If you later add accounts or saved events: implement authentication, ownership-scoped read/write rules, storage access restrictions, throttling/quotas, and redacted logs before public deployment.
-- The Devpost submission needs a public repository with visible open-source license, honest README, working link/test access, and a public YouTube demo no longer than 3 minutes in English. Do not publish any unrelated private projects.
+See the [competition release acceptance criteria](docs/RELEASE_ACCEPTANCE.md), [security and QA checks](docs/QA_AND_SECURITY.md), [judge testing guide](docs/JUDGE_TESTING.md), [submission description draft](docs/DEVPOST_SUBMISSION_DRAFT.md) and [three-minute demo storyboard](docs/DEMO_SCRIPT_3_MIN.md).
 
-## Design system
+## Submission gates
 
-Editorial navy / ivory / cobalt, Fraunces headings, simple direct metrics, responsive mobile layout, no gradients or glassmorphism. Artificial data is clearly marked. The AI status is sourced from the SDK response rather than fabricated.
+Public repository with license, published deployed build, real inference evidence, accessibility and security checks, and a public <=3-minute English YouTube demonstration. Official contest deadline **November 30, 2026, 2:00 p.m. PST**.
 
-## Roadmap to submission
-
-- [x] Standalone React/Vite interface with notebook, event stats and analysis controls
-- [x] Firebase AI Logic `PREFER_ON_DEVICE`, `ONLY_ON_DEVICE`, `ONLY_IN_CLOUD` integration in source
-- [x] App Check integration points and explicit setup instructions
-- [x] Isolated starter; no production access or data changes
-- [ ] Install dependencies / successfully compile / browser QA in a connected development environment
-- [ ] Connect actual Firebase, register App Check debug token locally
-- [ ] Verify Gemini Nano + cloud using real browser evidence
-- [ ] Run security, UX/accessibility, performance and failure-path audits
-- [ ] Publish separate public GitHub repo and deployed working demo
-- [ ] Record truthful three-minute YouTube demo; complete Devpost submission by Nov 30, 2026 2pm PST
-
-The code uses Firebase AI Logic at runtime, not a standalone Gemini REST fetch. This is an initial implementation; the real SDK setup and browser test are mandatory before saying it is contest-ready.
+This independent project is **not connected to FC ARENA**. Match teams and observations are fictional, not a real sports data feed. MatchMind does not promise winning a prize.

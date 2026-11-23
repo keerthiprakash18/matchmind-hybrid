@@ -1,0 +1,99 @@
+name: MatchMind quality gates
+
+on:
+  push:
+    branches: [main, 'feat/**']
+  pull_request:
+    branches: [main, 'feat/**']
+
+permissions:
+  contents: read
+
+jobs:
+  test-build:
+    name: Tests, typecheck and production build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Install pinned dependency tree
+        run: npm ci
+      - name: Reject committed environment or credential files
+        shell: bash
+        run: |
+          if git ls-files | grep -Ei '(^|/)(\.env(\.[^/]+)?|[^/]*\.(pem|p12|key)|service-account[^/]*\.json)$' | grep -vE '(^|/)\.env\.example$'; then
+            echo "::error::Potential secret/configuration file is tracked by Git."
+            exit 1
+          fi
+      - name: Run automated tests
+        run: npm test
+      - name: Source safety checks
+        run: node scripts/security-gates.mjs
+      - name: Typecheck and build
+        run: npm run build
+
+  dependency-audit:
+    name: Block high-severity dependency advisories
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Install locked dependency tree
+        run: npm ci
+      - name: Production dependency audit
+        run: npm audit --audit-level=high
+
+  browser-smoke:
+    name: Chromium desktop and mobile smoke tests
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Install locked app dependencies
+        run: npm ci
+      - name: Install browser test runner without modifying lockfile
+        run: npm install --no-save --package-lock=false @playwright/test@1.56.1 @axe-core/playwright@4.10.2
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Start app and await HTTP readiness
+        shell: bash
+        run: |
+          npm run dev -- --port 4173 > /tmp/matchmind-vite.log 2>&1 &
+          for attempt in $(seq 1 40); do
+            if curl --fail --silent http://127.0.0.1:4173/ >/dev/null; then
+              exit 0
+            fi
+            sleep 1
+          done
+          cat /tmp/matchmind-vite.log
+          exit 1
+      - name: Run browser smoke tests
+        run: npx playwright test tests/e2e.spec.mjs tests/accessibility.spec.mjs --reporter=line
+        env:
+          BASE_URL: http://127.0.0.1:4173
+      - name: Store synthetic-only UI screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: matchmind-visual-qa
+          path: artifacts/matchmind-*.png
+          if-no-files-found: ignore
+          retention-days: 7
