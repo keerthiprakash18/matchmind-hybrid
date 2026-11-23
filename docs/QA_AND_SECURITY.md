@@ -10,7 +10,7 @@
 - Test on Chrome 139+ with on-device model; record a real `ON_DEVICE` result before saying it works offline.
 - Verify cloud inference separately and prove hybrid fallback when model is unsupported.
 - Test 1-50 events, empty/invalid notes, restore session and clear confirmation, download CSV/brief, no stale AI result after edits.
-- Audit dependency CVEs. Current Firebase 12.19.0 lock includes `@grpc/grpc-js@1.9.16` via Firestore and has reported advisories. **Known issue: NOT resolved by this PR.** Do not suppress audit failures or run `npm audit fix --force` (which may replace Firebase with an incompatible version). Upgrade with a compatible tested patch and regenerate the lockfile.
+- Audit dependency CVEs. Current branch overrides vulnerable `@grpc/grpc-js@1.9.16` with patched `1.13.6`, and uses a registry-sourced SHA-512 integrity in `package-lock.json`. **Pending: rerun strict npm audit and confirm npm ci + Firebase build success in CI.** Never suppress failures or use `npm audit fix --force` (it can break Firebase hybrid SDK).
 - Verify production `VITE_ENABLE_APP_CHECK_DEBUG=false`. Previously exposed debug tokens in screenshots should be revoked. Keep them out of any versioned source or public demo.
 - Firebase env vars in Vercel must be set in the platform dashboard, not in GitHub; `.env` must remain untracked.
 - App Check protects API usage but does not replace anti-abuse, quotas or ownership validation for future stored accounts.
